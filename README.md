@@ -16,16 +16,19 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
 
 ## Skills Learned
 
-- Introduction to microservices
-- RESTFul microservices
-- gRPC microservices
-- Packaging applications with Docker
-- Testing microservice
-- Continuous Delivery
-- Observability
-- Using Kubernetes
-- Debugging
-- Security
-- Asynchronous microservices
-- Caching
-- Microservice reliability using a Service Mesh
+- [x] Introduction to microservices
+    - Go Builtin Web Server
+    - Go Logging
+    - Go Graceful Shutdown
+- [ ] RESTFul microservices
+- [ ] gRPC microservices
+- [ ] Packaging applications with Docker
+- [ ] Testing microservice
+- [ ] Continuous Delivery
+- [ ] Observability
+- [ ] Using Kubernetes
+- [ ] Debugging
+- [ ] Security
+- [ ] Asynchronous microservices
+- [ ] Caching
+- [ ] Microservice reliability using a Service Mesh
