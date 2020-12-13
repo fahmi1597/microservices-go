@@ -1,8 +1,13 @@
 package data
 
-import "time"
+import (
+	"encoding/json"
+	"io"
+	"time"
+)
 
-type Products struct {
+// Define product attributes with struct of Product
+type Product struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
@@ -13,12 +18,25 @@ type Products struct {
 	DeletedOn   string  `json:"-"`
 }
 
-func GetProducts() []*Products {
+// Reference to struct of Product
+type Products []*Product
+
+// Return a list of products
+func GetProducts() Products {
 	return productList
 }
 
-var productList = []*Products{
-	&Products{
+// ToJSON used for converting the struct of Product
+// to JSON. It has better performance than json.marshal
+// since it doesn't have to buffer the output into memory
+func (p *Products) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
+// List of Product is hard coded for testing purpose only
+var productList = Products{
+	&Product{
 		ID:          1,
 		Name:        "Latte",
 		Description: "Frosty milky coffee",
@@ -27,7 +45,7 @@ var productList = []*Products{
 		CreatedOn:   time.Now().Local().String(),
 		UpdatedOn:   time.Now().Local().String(),
 	},
-	&Products{
+	&Product{
 		ID:          2,
 		Name:        "Espresso",
 		Description: "Short and strong coffe without milk",

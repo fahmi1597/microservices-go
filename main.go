@@ -24,7 +24,7 @@ func main() {
 	sm.Handle("/", ph)
 
 	s := &http.Server{
-		Addr:         ":3000",           // bind address
+		Addr:         "localhost:3000",  // bind address
 		Handler:      sm,                // default handler
 		ErrorLog:     l,                 // set the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from client
@@ -36,7 +36,7 @@ func main() {
 	go func() {
 		l.Println("Server starting on port", s.Addr)
 		if err := s.ListenAndServe(); err != nil {
-			l.Printf("Error starting server %s \n", err.Error())
+			l.Printf("Error starting server: %s \n", err.Error())
 			os.Exit(1)
 		}
 	}()
@@ -46,8 +46,9 @@ func main() {
 	signal.Notify(ch, os.Kill)
 
 	sig := <-ch
-	l.Printf("Application terminated (reason : %s)", sig.String())
+	l.Printf("Application terminated: %s", sig.String())
 
+	// Graceful shutdown the server, waiting for max of 30 seconds until current operations is completed
 	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(tc)
 
