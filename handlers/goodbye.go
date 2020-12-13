@@ -16,7 +16,7 @@ func NewGoodbye(l *log.Logger) *Goodbye {
 }
 
 func (g *Goodbye) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	g.l.Println("Handled - Goodbye World")
+	g.l.Println("handle Goodbye requests")
 
 	// Read request body data
 	d, err := ioutil.ReadAll(req.Body)

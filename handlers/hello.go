@@ -16,12 +16,14 @@ func NewHello(l *log.Logger) *Hello {
 }
 
 func (h *Hello) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	h.l.Println("Handled - Hello World")
+	h.l.Println("handle Hello requests")
+
+	// Read request body
 	d, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		http.Error(resp, "Oops", http.StatusBadRequest)
-		// resp.WriteHeader(http.StatusBadRequest)
-		// resp.Write([]byte("Bad Request"))
+		h.l.Println("Error reading body", err.Error())
+
+		http.Error(resp, "Unable to read request body", http.StatusBadRequest)
 		return
 	}
 
