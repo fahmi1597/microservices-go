@@ -20,7 +20,13 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - Go Builtin Web Server
     - Go Logging
     - Go Graceful Shutdown
-- [ ] RESTFul microservices
+- [x] RESTFul microservices
+    - Introduction to RESTful services
+    - Serializing data with encoding/json
+    - Filtering HTTP requests with the Go standard library
+    - De-serializing data with encoding/json
+    - Handling POST and PUT requests
+
 - [ ] gRPC microservices
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice

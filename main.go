@@ -36,7 +36,7 @@ func main() {
 	go func() {
 		l.Println("Server starting on port", s.Addr)
 		if err := s.ListenAndServe(); err != nil {
-			l.Printf("Error starting server: %s \n", err.Error())
+			l.Println(err)
 			os.Exit(1)
 		}
 	}()

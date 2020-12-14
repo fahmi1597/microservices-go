@@ -2,11 +2,12 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 )
 
-// Define product attributes with struct of Product
+// Product is a struct of Product
 type Product struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name"`
@@ -18,12 +19,48 @@ type Product struct {
 	DeletedOn   string  `json:"-"`
 }
 
-// Reference to struct of Product
+// Products is a reference to struct of Product
 type Products []*Product
 
-// Return a list of products
+// ErrProductNotFound is an error notification for product that doesn't exist
+var ErrProductNotFound = fmt.Errorf("Product not found")
+
+// GetProducts return a list of products
 func GetProducts() Products {
 	return productList
+}
+
+// AddProduct is a function to add the requested product
+func AddProduct(p *Product) {
+	p.ID = productNextID()
+	productList = append(productList, p)
+}
+
+// UpdateProduct is a function to update the requested product
+func UpdateProduct(id int, p *Product) error {
+	_, pos, err := findProduct(id)
+	if err != nil {
+		return err
+	}
+
+	p.ID = id
+	productList[pos] = p
+
+	return nil
+}
+
+func findProduct(id int) (p *Product, pos int, err error) {
+	for i, p := range productList {
+		if p.ID == id {
+			return p, i, nil
+		}
+	}
+	return nil, -1, ErrProductNotFound
+}
+
+func productNextID() int {
+	cid := productList[len(productList)-1]
+	return cid.ID + 1
 }
 
 // ToJSON used for converting the struct of Product
@@ -32,6 +69,13 @@ func GetProducts() Products {
 func (p *Products) ToJSON(w io.Writer) error {
 	e := json.NewEncoder(w)
 	return e.Encode(p)
+}
+
+// FromJSON used for converting JSON
+// formatted data to struct of Products which refer to Product
+func (p *Product) FromJSON(r io.Reader) error {
+	e := json.NewDecoder(r)
+	return e.Decode(p)
 }
 
 // List of Product is hard coded for testing purpose only
