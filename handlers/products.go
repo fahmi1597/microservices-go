@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -25,10 +26,10 @@ func (p *Products) GetProduct(resp http.ResponseWriter, req *http.Request) {
 	p.l.Println("Handle GET requests")
 
 	// Retrieve products
-	lp := data.GetProducts()
+	lprod := data.GetProducts()
 
 	// Serialize products to JSON
-	err := lp.ToJSON(resp)
+	err := lprod.ToJSON(resp)
 	if err != nil {
 		p.l.Println("Failed to encode JSON", http.StatusInternalServerError)
 		http.Error(resp, "Unable to encode data to json", http.StatusInternalServerError)
@@ -40,9 +41,9 @@ func (p *Products) GetProduct(resp http.ResponseWriter, req *http.Request) {
 func (p *Products) AddProduct(resp http.ResponseWriter, req *http.Request) {
 	p.l.Println("Handle POST requests")
 
-	ap := req.Context().Value(KeyProduct{}).(data.Product)
+	prod := req.Context().Value(KeyProduct{}).(data.Product)
 
-	data.AddProduct(&ap)
+	data.AddProduct(&prod)
 }
 
 // UpdateProduct is a handler to update a product
@@ -56,9 +57,9 @@ func (p *Products) UpdateProduct(resp http.ResponseWriter, req *http.Request) {
 
 	p.l.Println("Handle PUT requests", id)
 
-	up := req.Context().Value(KeyProduct{}).(data.Product)
+	prod := req.Context().Value(KeyProduct{}).(data.Product)
 
-	err = data.UpdateProduct(id, &up)
+	err = data.UpdateProduct(id, &prod)
 	if err == data.ErrProductNotFound {
 		http.Error(resp, "Product not found!", http.StatusNotFound)
 		return
@@ -78,16 +79,26 @@ func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 
 		prod := data.Product{}
 
-		err := prod.FromJSON(req.Body)
-
-		if err != nil {
+		if err := prod.FromJSON(req.Body); err != nil {
 			p.l.Println("Error: deserialize product", http.StatusBadRequest)
 			http.Error(resp, "Error reading product", http.StatusBadRequest)
 			return
 		}
 
+		// Validate products
+		if err := prod.Validate(); err != nil {
+			p.l.Println("Error: validating product", http.StatusBadRequest)
+			http.Error(
+				resp,
+				fmt.Sprintf("Error validating product %s", err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
 		// Create context of validated product
 		ctx := context.WithValue(req.Context(), KeyProduct{}, prod)
+
 		// Send the validated product request to the next handler
 		req = req.WithContext(ctx)
 		next.ServeHTTP(resp, req)

@@ -4,16 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 // Product is a struct of Product
 type Product struct {
 	ID          int     `json:"id"`
-	Name        string  `json:"name"`
+	Name        string  `json:"name" validate:"required"`
 	Description string  `json:"description"`
-	Price       float32 `json:"price"`
-	SKU         string  `json:"sku"`
+	Price       float32 `json:"price" validate:"gt=0"`
+	SKU         string  `json:"sku" validate:"required,sku"`
 	CreatedOn   string  `json:"-"`
 	UpdatedOn   string  `json:"-"`
 	DeletedOn   string  `json:"-"`
@@ -24,6 +27,29 @@ type Products []*Product
 
 // ErrProductNotFound is an error notification for product that doesn't exist
 var ErrProductNotFound = fmt.Errorf("Product not found")
+
+// Validate is a struct validator
+func (p *Product) Validate() error {
+
+	v := validator.New()
+	v.RegisterValidation("sku", validateSKU)
+
+	return v.Struct(p)
+}
+
+func validateSKU(fl validator.FieldLevel) bool {
+	// sku format : abc-123-xy
+	fs := fl.Field().String()
+	re := regexp.MustCompile(`[a-z]{3}-[0-9]{3}-[a-z]{2}`)
+	m := re.FindAllString(fs, -1)
+
+	if len(m) != 1 {
+		return false
+	}
+
+	return true
+
+}
 
 // GetProducts return a list of products
 func GetProducts() Products {
@@ -78,14 +104,14 @@ func (p *Product) FromJSON(r io.Reader) error {
 	return e.Decode(p)
 }
 
-// List of Product is hard coded for testing purpose only
+// Dummy data
 var productList = Products{
 	&Product{
 		ID:          1,
 		Name:        "Latte",
 		Description: "Frosty milky coffee",
 		Price:       2.45,
-		SKU:         "abc123",
+		SKU:         "abc-123-aa",
 		CreatedOn:   time.Now().Local().String(),
 		UpdatedOn:   time.Now().Local().String(),
 	},
@@ -94,7 +120,7 @@ var productList = Products{
 		Name:        "Espresso",
 		Description: "Short and strong coffe without milk",
 		Price:       1.29,
-		SKU:         "asd321",
+		SKU:         "asd-321-bb",
 		CreatedOn:   time.Now().Local().String(),
 		UpdatedOn:   time.Now().Local().String(),
 	},

@@ -27,6 +27,7 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - De-serializing data with encoding/json
     - Handling POST and PUT requests
     - Refactoring the standard library to use the Gorilla framework
+    - JSON validation 
 - [ ] gRPC microservices
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
