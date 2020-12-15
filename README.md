@@ -26,7 +26,6 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - Filtering HTTP requests with the Go standard library
     - De-serializing data with encoding/json
     - Handling POST and PUT requests
-
 - [ ] gRPC microservices
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
