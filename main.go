@@ -9,19 +9,31 @@ import (
 	"time"
 
 	"github.com/fahmi1597/microservices-go/handlers"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 
 	// Logging
-	l := log.New(os.Stdout, "product-api : ", log.LstdFlags)
+	l := log.New(os.Stdout, "product-api: ", log.LstdFlags)
 
 	// The handlers
 	ph := handlers.NewProduct(l)
 
-	// Create servemux and register the handlers
-	sm := http.NewServeMux()
-	sm.Handle("/", ph)
+	// Create servemux
+	sm := mux.NewRouter()
+
+	// Create the handlers
+	getProduct := sm.Methods(http.MethodGet).Subrouter()
+	getProduct.HandleFunc("/", ph.GetProduct)
+
+	addProduct := sm.Methods(http.MethodPost).Subrouter()
+	addProduct.HandleFunc("/", ph.AddProduct)
+	addProduct.Use(ph.MiddlewareValidation)
+
+	updateProduct := sm.Methods(http.MethodPut).Subrouter()
+	updateProduct.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	updateProduct.Use(ph.MiddlewareValidation)
 
 	s := &http.Server{
 		Addr:         "localhost:3000",  // bind address
