@@ -28,19 +28,19 @@ func main() {
 	// Create and register the handlers
 	// GET
 	getProduct := sm.Methods(http.MethodGet).Subrouter()
-	getProduct.HandleFunc("/product", ph.GetListProduct)
-	getProduct.HandleFunc("/product/{id:[0-9]+}", ph.GetProduct)
+	getProduct.HandleFunc("/products", ph.GetListProduct)
+	getProduct.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
 	// POST
 	addProduct := sm.Methods(http.MethodPost).Subrouter()
-	addProduct.HandleFunc("/product", ph.AddProduct)
+	addProduct.HandleFunc("/products", ph.AddProduct)
 	addProduct.Use(ph.MiddlewareValidation)
 	// PUT
 	updateProduct := sm.Methods(http.MethodPut).Subrouter()
-	updateProduct.HandleFunc("/product/{id:[0-9]+}", ph.UpdateProduct)
+	updateProduct.HandleFunc("/products", ph.UpdateProduct)
 	updateProduct.Use(ph.MiddlewareValidation)
 	// DELETE *not working yet*
 	deleteProduct := sm.Methods(http.MethodDelete).Subrouter()
-	deleteProduct.HandleFunc("/product/{id:[0-9]+}", ph.DeleteProduct)
+	deleteProduct.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
 
 	s := &http.Server{
 		Addr:         "localhost:3000",  // bind address

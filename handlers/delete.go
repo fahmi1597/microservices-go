@@ -10,17 +10,17 @@ import (
 func (p *Products) DeleteProduct(resp http.ResponseWriter, req *http.Request) {
 
 	id := p.getProductID(req)
-	p.l.Println("[DEBUG] Retrieve product id", id)
+	p.l.Println("[DEBUG] Delete product id:", id)
 
 	err := data.DeleteProduct(id)
-	if err != data.ErrProductNotFound {
-		p.l.Println("[ERROR] deleting record id does not exist")
-		http.Error(resp, "Product not found!", http.StatusNotFound)
-		resp.WriteHeader(http.StatusNotFound)
+	if err == data.ErrProductNotFound {
+		p.l.Println("[ERROR] Deleting record id", id, "(does not exist)")
+		http.Error(resp, "Product not found", http.StatusNotFound)
 		return
 	}
+
 	if err != nil {
-		p.l.Println("[ERROR] deleting record")
+		p.l.Println("[ERROR] Deleting record")
 		resp.WriteHeader(http.StatusInternalServerError)
 		http.Error(resp, "Internal server error ", http.StatusInternalServerError)
 		return

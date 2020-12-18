@@ -13,4 +13,5 @@ func (p *Products) AddProduct(resp http.ResponseWriter, req *http.Request) {
 
 	p.l.Printf("[DEBUG] Inserting product: %#v\n", prod)
 	data.AddProduct(prod)
+
 }

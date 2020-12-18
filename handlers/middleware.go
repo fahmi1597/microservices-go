@@ -10,6 +10,7 @@ import (
 
 // MiddlewareValidation is a midleware handler for validation
 func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
+
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 
 		prod := &data.Product{}
@@ -17,7 +18,6 @@ func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 		err := data.FromJSON(prod, req.Body)
 		if err != nil {
 			p.l.Println("[ERROR] Deserialize product", http.StatusBadRequest)
-			resp.WriteHeader(http.StatusBadRequest)
 			http.Error(resp, "Error reading product", http.StatusBadRequest)
 			return
 		}

@@ -24,12 +24,14 @@ type Products []*Product
 var ErrProductNotFound = fmt.Errorf("Product not found")
 
 // GetProduct return a product
-func GetProduct(id int) (p *Product, err error) {
-	prod, _, err := findProduct(id)
-	if err != nil {
-		return nil, ErrProductNotFound
+func GetProduct(id int) (*Product, error) {
+
+	i := findProductByID(id)
+	if i != -1 {
+		return productList[i], nil
 	}
-	return prod, nil
+
+	return nil, ErrProductNotFound
 }
 
 // GetListProduct return a list of products
@@ -39,7 +41,6 @@ func GetListProduct() Products {
 
 // AddProduct is a function to add the requested product
 func AddProduct(p Product) {
-
 	// Get latest item[position] id
 	cID := productList[len(productList)-1].ID
 	p.ID = cID + 1
@@ -47,36 +48,35 @@ func AddProduct(p Product) {
 }
 
 // UpdateProduct is a function to update the requested product
-func UpdateProduct(id int, p *Product) error {
-	_, pos, err := findProduct(id)
-	if err != nil {
-		return err
-	}
+func UpdateProduct(p Product) error {
 
-	p.ID = id
-	productList[pos] = p
-
-	return nil
-}
-
-// DeleteProduct is a function to delete the requested product
-func DeleteProduct(id int) error {
-	_, pos, _ := findProduct(id)
-	if pos != -1 {
-		productList = append(productList[:pos], productList[pos+1])
+	i := findProductByID(p.ID)
+	if i != -1 {
+		productList[i] = &p
 		return nil
 	}
 
 	return ErrProductNotFound
 }
 
-func findProduct(id int) (p *Product, pos int, err error) {
+// DeleteProduct is a function to delete the requested product
+func DeleteProduct(id int) error {
+	i := findProductByID(id)
+	if i != -1 {
+		productList = append(productList[:i], productList[i+1])
+		return nil
+	}
+
+	return ErrProductNotFound
+}
+
+func findProductByID(id int) int {
 	for i, p := range productList {
 		if p.ID == id {
-			return p, i, nil
+			return i
 		}
 	}
-	return nil, -1, ErrProductNotFound
+	return -1
 }
 
 func productNextID() int {

@@ -26,7 +26,6 @@ type KeyProduct struct{}
 func (p *Products) getProductID(req *http.Request) int {
 
 	vars := mux.Vars(req)
-
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		p.l.Println("[ERROR] Converting product id", id)
