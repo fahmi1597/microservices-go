@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/fahmi1597/microservices-go/data"
 	"github.com/fahmi1597/microservices-go/handlers"
 	"github.com/gorilla/mux"
 )
@@ -16,24 +17,30 @@ func main() {
 
 	// Logging
 	l := log.New(os.Stdout, "product-api: ", log.LstdFlags)
+	v := data.NewValidator()
 
 	// The handlers
-	ph := handlers.NewProduct(l)
+	ph := handlers.NewProduct(l, v)
 
 	// Create servemux
 	sm := mux.NewRouter()
 
-	// Create the handlers
+	// Create and register the handlers
+	// GET
 	getProduct := sm.Methods(http.MethodGet).Subrouter()
-	getProduct.HandleFunc("/", ph.GetProduct)
-
+	getProduct.HandleFunc("/products", ph.GetListProduct)
+	getProduct.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
+	// POST
 	addProduct := sm.Methods(http.MethodPost).Subrouter()
-	addProduct.HandleFunc("/", ph.AddProduct)
+	addProduct.HandleFunc("/products", ph.AddProduct)
 	addProduct.Use(ph.MiddlewareValidation)
-
+	// PUT
 	updateProduct := sm.Methods(http.MethodPut).Subrouter()
-	updateProduct.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	updateProduct.HandleFunc("/products", ph.UpdateProduct)
 	updateProduct.Use(ph.MiddlewareValidation)
+	// DELETE *not working yet*
+	deleteProduct := sm.Methods(http.MethodDelete).Subrouter()
+	deleteProduct.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
 
 	s := &http.Server{
 		Addr:         "localhost:3000",  // bind address

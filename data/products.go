@@ -1,13 +1,8 @@
 package data
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"regexp"
 	"time"
-
-	"github.com/go-playground/validator/v10"
 )
 
 // Product is a struct of Product
@@ -28,60 +23,60 @@ type Products []*Product
 // ErrProductNotFound is an error notification for product that doesn't exist
 var ErrProductNotFound = fmt.Errorf("Product not found")
 
-// Validate is a struct validator
-func (p *Product) Validate() error {
+// GetProduct return a product
+func GetProduct(id int) (*Product, error) {
 
-	v := validator.New()
-	v.RegisterValidation("sku", validateSKU)
-
-	return v.Struct(p)
-}
-
-func validateSKU(fl validator.FieldLevel) bool {
-	// sku format : abc-123-xy
-	fs := fl.Field().String()
-	re := regexp.MustCompile(`[a-z]{3}-[0-9]{3}-[a-z]{2}`)
-	m := re.FindAllString(fs, -1)
-
-	if len(m) != 1 {
-		return false
+	i := findProductByID(id)
+	if i != -1 {
+		return productList[i], nil
 	}
 
-	return true
-
+	return nil, ErrProductNotFound
 }
 
-// GetProducts return a list of products
-func GetProducts() Products {
+// GetListProduct return a list of products
+func GetListProduct() Products {
 	return productList
 }
 
 // AddProduct is a function to add the requested product
-func AddProduct(p *Product) {
-	p.ID = productNextID()
-	productList = append(productList, p)
+func AddProduct(p Product) {
+	// Get latest item[position] id
+	cID := productList[len(productList)-1].ID
+	p.ID = cID + 1
+	productList = append(productList, &p)
 }
 
 // UpdateProduct is a function to update the requested product
-func UpdateProduct(id int, p *Product) error {
-	_, pos, err := findProduct(id)
-	if err != nil {
-		return err
+func UpdateProduct(p Product) error {
+
+	i := findProductByID(p.ID)
+	if i != -1 {
+		productList[i] = &p
+		return nil
 	}
 
-	p.ID = id
-	productList[pos] = p
-
-	return nil
+	return ErrProductNotFound
 }
 
-func findProduct(id int) (p *Product, pos int, err error) {
+// DeleteProduct is a function to delete the requested product
+func DeleteProduct(id int) error {
+	i := findProductByID(id)
+	if i != -1 {
+		productList = append(productList[:i], productList[i+1])
+		return nil
+	}
+
+	return ErrProductNotFound
+}
+
+func findProductByID(id int) int {
 	for i, p := range productList {
 		if p.ID == id {
-			return p, i, nil
+			return i
 		}
 	}
-	return nil, -1, ErrProductNotFound
+	return -1
 }
 
 func productNextID() int {
@@ -89,24 +84,9 @@ func productNextID() int {
 	return cid.ID + 1
 }
 
-// ToJSON used for converting the struct of Product
-// to JSON. It has better performance than json.marshal
-// since it doesn't have to buffer the output into memory
-func (p *Products) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(p)
-}
-
-// FromJSON used for converting JSON
-// formatted data to struct of Products which refer to Product
-func (p *Product) FromJSON(r io.Reader) error {
-	e := json.NewDecoder(r)
-	return e.Decode(p)
-}
-
 // Dummy data
-var productList = Products{
-	&Product{
+var productList = []*Product{
+	{
 		ID:          1,
 		Name:        "Latte",
 		Description: "Frosty milky coffee",
@@ -115,7 +95,7 @@ var productList = Products{
 		CreatedOn:   time.Now().Local().String(),
 		UpdatedOn:   time.Now().Local().String(),
 	},
-	&Product{
+	{
 		ID:          2,
 		Name:        "Espresso",
 		Description: "Short and strong coffe without milk",
