@@ -63,7 +63,7 @@ func UpdateProduct(p Product) error {
 func DeleteProduct(id int) error {
 	i := findProductByID(id)
 	if i != -1 {
-		productList = append(productList[:i], productList[i+1])
+		productList = append(productList[:i], productList[i+1:]...)
 		return nil
 	}
 
