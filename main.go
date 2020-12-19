@@ -10,6 +10,7 @@ import (
 
 	"github.com/fahmi1597/microservices-go/data"
 	"github.com/fahmi1597/microservices-go/handlers"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -25,22 +26,29 @@ func main() {
 	// Create servemux
 	sm := mux.NewRouter()
 
-	// Create and register the handlers
+	// Create and register the handlers for each subrouter
 	// GET
-	getProduct := sm.Methods(http.MethodGet).Subrouter()
-	getProduct.HandleFunc("/products", ph.GetListProduct)
-	getProduct.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
+	getR := sm.Methods(http.MethodGet).Subrouter()
+	getR.HandleFunc("/products", ph.GetProducts)
+	getR.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
 	// POST
-	addProduct := sm.Methods(http.MethodPost).Subrouter()
-	addProduct.HandleFunc("/products", ph.AddProduct)
-	addProduct.Use(ph.MiddlewareValidation)
+	postR := sm.Methods(http.MethodPost).Subrouter()
+	postR.HandleFunc("/products", ph.AddProduct)
+	postR.Use(ph.MiddlewareValidation)
 	// PUT
-	updateProduct := sm.Methods(http.MethodPut).Subrouter()
-	updateProduct.HandleFunc("/products", ph.UpdateProduct)
-	updateProduct.Use(ph.MiddlewareValidation)
+	putR := sm.Methods(http.MethodPut).Subrouter()
+	putR.HandleFunc("/products", ph.UpdateProduct)
+	putR.Use(ph.MiddlewareValidation)
 	// DELETE *not working yet*
-	deleteProduct := sm.Methods(http.MethodDelete).Subrouter()
-	deleteProduct.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+	delR := sm.Methods(http.MethodDelete).Subrouter()
+	delR.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+
+	// handler for documentation
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(opts, nil)
+
+	getR.Handle("/docs", sh)
+	getR.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	s := &http.Server{
 		Addr:         "localhost:3000",  // bind address
