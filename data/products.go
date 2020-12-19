@@ -2,26 +2,52 @@ package data
 
 import (
 	"fmt"
-	"time"
 )
 
-// Product is a struct of Product
+// Product defines the structure for an API product
+// swagger:model
 type Product struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name" validate:"required"`
-	Description string  `json:"description"`
-	Price       float32 `json:"price" validate:"gt=0"`
-	SKU         string  `json:"sku" validate:"required,sku"`
-	CreatedOn   string  `json:"-"`
-	UpdatedOn   string  `json:"-"`
-	DeletedOn   string  `json:"-"`
+	// the id for the product
+	//
+	// required: false
+	// min: 1
+	ID int `json:"id"`
+
+	// the name for this poduct
+	//
+	// required: true
+	// max length: 255
+	Name string `json:"name" validate:"required"`
+
+	// the description for this poduct
+	//
+	// required: false
+	// max length: 10000
+	Description string `json:"description"`
+
+	// the price for the product
+	//
+	// required: true
+	// min: 0.01
+	Price float32 `json:"price" validate:"gt=0"`
+
+	// the SKU for the product
+	//
+	// required: true
+	// pattern: [a-z]+{3}-[0-9]+{3}-[a-z]+{2}
+	SKU string `json:"sku" validate:"required,sku"`
 }
 
 // Products is a reference to struct of Product
 type Products []*Product
 
-// ErrProductNotFound is an error notification for product that doesn't exist
+// ErrProductNotFound is an error message when client requesting a product that can not be found or doesn't exist
 var ErrProductNotFound = fmt.Errorf("Product not found")
+
+// GetListProduct return a list of products
+func GetListProduct() Products {
+	return productList
+}
 
 // GetProduct return a product
 func GetProduct(id int) (*Product, error) {
@@ -32,11 +58,6 @@ func GetProduct(id int) (*Product, error) {
 	}
 
 	return nil, ErrProductNotFound
-}
-
-// GetListProduct return a list of products
-func GetListProduct() Products {
-	return productList
 }
 
 // AddProduct is a function to add the requested product
@@ -70,6 +91,8 @@ func DeleteProduct(id int) error {
 	return ErrProductNotFound
 }
 
+// findProductByID finds the index of a product in the database
+// returns -1 when no product can be found
 func findProductByID(id int) int {
 	for i, p := range productList {
 		if p.ID == id {
@@ -77,11 +100,6 @@ func findProductByID(id int) int {
 		}
 	}
 	return -1
-}
-
-func productNextID() int {
-	cid := productList[len(productList)-1]
-	return cid.ID + 1
 }
 
 // Dummy data
@@ -92,8 +110,6 @@ var productList = []*Product{
 		Description: "Frosty milky coffee",
 		Price:       2.45,
 		SKU:         "abc-123-aa",
-		CreatedOn:   time.Now().Local().String(),
-		UpdatedOn:   time.Now().Local().String(),
 	},
 	{
 		ID:          2,
@@ -101,7 +117,5 @@ var productList = []*Product{
 		Description: "Short and strong coffe without milk",
 		Price:       1.29,
 		SKU:         "asd-321-bb",
-		CreatedOn:   time.Now().Local().String(),
-		UpdatedOn:   time.Now().Local().String(),
 	},
 }
