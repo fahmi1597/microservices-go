@@ -53,10 +53,10 @@ func main() {
 
 	// Start the server inside go routines
 	go func() {
-		l.Println("Server starting on port", s.Addr)
-		if err := s.ListenAndServe(); err != nil {
-			l.Println(err)
-			os.Exit(1)
+		l.Println("Server starting on", s.Addr)
+		err := s.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			l.Fatalf("[ERROR] starting server: %s\n", err)
 		}
 	}()
 
@@ -65,10 +65,18 @@ func main() {
 	signal.Notify(ch, os.Kill)
 
 	sig := <-ch
-	l.Printf("Application terminated: %s", sig.String())
+	l.Printf("Signal %s received, shutting down", sig)
 
 	// Graceful shutdown the server, waiting for max of 30 seconds until current operations is completed
-	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	s.Shutdown(tc)
+	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
+	defer func() {
+		cancel()
+	}()
+
+	err := s.Shutdown(tc)
+	if err != nil {
+		l.Fatalf("Shutdown failed: %+v", err)
+	}
+	os.Exit(0)
 }
