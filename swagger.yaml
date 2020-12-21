@@ -1,3 +1,6 @@
+basePath: /
+consumes:
+- application/json
 definitions:
   GenericError:
     description: GenericError is a generic error message returned by a server
@@ -34,7 +37,7 @@ definitions:
         x-go-name: Price
       sku:
         description: the SKU for the product
-        pattern: '[a-z]+{3}-[0-9]+{3}-[a-z]+{2}'
+        pattern: '[a-z]+\d{3}-[0-9]+\d{3}-[a-z]+\d{2}'
         type: string
         x-go-name: SKU
     required:
@@ -53,12 +56,23 @@ definitions:
         x-go-name: Messages
     type: object
     x-go-package: github.com/fahmi1597/microservices-go/handlers
-info: {}
+host: localhost
+info:
+  description: |-
+    the purpose of this application is to provide an application
+    that is using plain go code to define an API
+
+    This should demonstrate all the possible comment annotations
+    that are available to turn go code into a fully compliant swagger 2.0 spec
+
+    Documentation for Product API
+  title: Product API.
+  version: 0.0.1
 paths:
   /products:
     get:
       description: Return a list of products from the database
-      operationId: GetProducts
+      operationId: getProducts
       responses:
         "200":
           $ref: '#/responses/productsResponse'
@@ -66,7 +80,7 @@ paths:
       - products
     post:
       description: Create a new product
-      operationId: AddProduct
+      operationId: addProduct
       parameters:
       - description: |-
           Product data structure to Update or Create.
@@ -87,7 +101,7 @@ paths:
       - products
     put:
       description: Update a product details
-      operationId: UpdateProduct
+      operationId: updateProduct
       parameters:
       - description: |-
           Product data structure to Update or Create.
@@ -109,7 +123,15 @@ paths:
   /products/{id}:
     delete:
       description: Delete a product
-      operationId: DeleteProduct
+      operationId: deleteProduct
+      parameters:
+      - description: The id of the product for which the operation relates
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: ID
       responses:
         "201":
           $ref: '#/responses/noContentResponse'
@@ -121,7 +143,15 @@ paths:
       - products
     get:
       description: Return a product from the database
-      operationId: GetProduct
+      operationId: getProduct
+      parameters:
+      - description: The id of the product for which the operation relates
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: ID
       responses:
         "200":
           $ref: '#/responses/productResponse'
@@ -129,6 +159,8 @@ paths:
           $ref: '#/responses/errorResponse'
       tags:
       - products
+produces:
+- application/json
 responses:
   errorResponse:
     description: Generic error message returned as a string
@@ -150,4 +182,6 @@ responses:
       items:
         $ref: '#/definitions/Product'
       type: array
+schemes:
+- http
 swagger: "2.0"

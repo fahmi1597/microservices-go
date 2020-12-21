@@ -6,7 +6,7 @@ import (
 	"github.com/fahmi1597/microservices-go/data"
 )
 
-// swagger:route PUT /products products UpdateProduct
+// swagger:route PUT /products products updateProduct
 // Update a product details
 //
 // responses:

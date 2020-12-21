@@ -6,7 +6,7 @@ import (
 	"github.com/fahmi1597/microservices-go/data"
 )
 
-// swagger:route DELETE /products/{id} products DeleteProduct
+// swagger:route DELETE /products/{id} products deleteProduct
 // Delete a product
 //
 // responses:
