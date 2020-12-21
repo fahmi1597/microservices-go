@@ -6,7 +6,7 @@ import (
 	"github.com/fahmi1597/microservices-go/data"
 )
 
-// swagger:route GET /products products GetProducts
+// swagger:route GET /products products getProducts
 // Return a list of products from the database
 // responses:
 //	200: productsResponse
@@ -14,7 +14,7 @@ import (
 // GetProducts is a handler that return list of products
 func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
 	p.l.Println("[DEBUG] Retrieve product list")
-
+	resp.Header().Set("Content-Type", "application/json")
 	// Retrieve products
 	lprod := data.GetListProduct()
 
@@ -27,7 +27,7 @@ func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// swagger:route GET /products/{id} products GetProduct
+// swagger:route GET /products/{id} products getProduct
 // Return a product from the database
 // responses:
 //	200: productResponse
@@ -36,6 +36,7 @@ func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
 // GetProduct is a handler that return a product
 func (p *Products) GetProduct(resp http.ResponseWriter, req *http.Request) {
 
+	resp.Header().Set("Content-Type", "application/json")
 	id := p.getProductID(req)
 	p.l.Println("[DEBUG] Retrieve product id:", id)
 

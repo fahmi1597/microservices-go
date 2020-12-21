@@ -6,10 +6,13 @@
 // This should demonstrate all the possible comment annotations
 // that are available to turn go code into a fully compliant swagger 2.0 spec
 //
+// Documentation for Product API
+//
 //	Schemes: http
 //	Host: localhost
 //	BasePath: /
 //	Version: 0.0.1
+//
 //	Consumes:
 //	- application/json
 //
@@ -17,7 +20,6 @@
 //	- application/json
 //
 // swagger:meta
-
 package handlers
 
 import "github.com/fahmi1597/microservices-go/data"
@@ -59,7 +61,7 @@ type productResponseWrapper struct {
 type noContentResponseWrapper struct {
 }
 
-// swagger:parameters AddProduct UpdateProduct
+// swagger:parameters addProduct updateProduct
 type productParamsWrapper struct {
 	// Product data structure to Update or Create.
 	// Note: the id field is ignored by update and create operations
@@ -68,7 +70,7 @@ type productParamsWrapper struct {
 	Body data.Product
 }
 
-// swagger:parameters updateProduct
+// swagger:parameters getProduct deleteProduct
 type productIDParamsWrapper struct {
 	// The id of the product for which the operation relates
 	// in: path
