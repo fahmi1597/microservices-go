@@ -6,6 +6,14 @@ import (
 	"github.com/fahmi1597/microservices-go/data"
 )
 
+// swagger:route DELETE /products/{id} products DeleteProduct
+// Delete a product
+//
+// responses:
+//	201: noContentResponse
+//  404: errorResponse
+//  501: errorResponse
+
 // DeleteProduct is a handler to delete a product
 func (p *Products) DeleteProduct(resp http.ResponseWriter, req *http.Request) {
 

@@ -79,3 +79,13 @@ func (ve ValidationError) Error() string {
 		ve.Tag(),
 	)
 }
+
+// Errors converts the slice into a string slice
+func (ves ValidationErrors) Errors() []string {
+	errs := []string{}
+	for _, err := range ves {
+		errs = append(errs, err.Error())
+	}
+
+	return errs
+}

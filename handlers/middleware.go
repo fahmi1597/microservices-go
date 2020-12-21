@@ -2,13 +2,12 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/fahmi1597/microservices-go/data"
 )
 
-// MiddlewareValidation is a midleware handler for validation
+// MiddlewareValidation is a middleware handler for product validation before going to the next handler
 func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
@@ -18,7 +17,9 @@ func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 		err := data.FromJSON(prod, req.Body)
 		if err != nil {
 			p.l.Println("[ERROR] Deserialize product", http.StatusBadRequest)
-			http.Error(resp, "Error reading product", http.StatusBadRequest)
+
+			resp.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, resp)
 			return
 		}
 
@@ -26,11 +27,9 @@ func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 		vErr := p.v.Validate(prod)
 		if len(vErr) != 0 {
 			p.l.Println("[ERROR] Validating product", http.StatusBadRequest)
-			http.Error(
-				resp,
-				fmt.Sprintf("Error validating product %s", vErr),
-				http.StatusBadRequest,
-			)
+
+			resp.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&ValidationError{Messages: vErr.Errors()}, resp)
 			return
 		}
 
