@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/fahmi1597/microservices-go/ms-client/client"
-	"github.com/fahmi1597/microservices-go/ms-client/client/products"
+	"github.com/fahmi1597/microservices-go/product-api/ms-client/client"
+	"github.com/fahmi1597/microservices-go/product-api/ms-client/client/products"
 )
 
 func TestClient(t *testing.T) {

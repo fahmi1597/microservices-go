@@ -15,7 +15,7 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/fahmi1597/microservices-go/ms-client/models"
+	"github.com/fahmi1597/microservices-go/product-api/ms-client/models"
 )
 
 // NewAddProductParams creates a new AddProductParams object

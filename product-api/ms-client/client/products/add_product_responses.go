@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/fahmi1597/microservices-go/ms-client/models"
+	"github.com/fahmi1597/microservices-go/product-api/ms-client/models"
 )
 
 // AddProductReader is a Reader for the AddProduct structure.

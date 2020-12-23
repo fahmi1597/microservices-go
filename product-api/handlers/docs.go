@@ -22,7 +22,7 @@
 // swagger:meta
 package handlers
 
-import "github.com/fahmi1597/microservices-go/data"
+import "github.com/fahmi1597/microservices-go/product-api/data"
 
 // Generic error message returned as a string
 // swagger:response errorResponse

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/fahmi1597/microservices-go/data"
+	"github.com/fahmi1597/microservices-go/product-api/data"
 )
 
 // MiddlewareValidation is a middleware handler for product validation before going to the next handler
