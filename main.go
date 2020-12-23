@@ -70,11 +70,11 @@ func main() {
 		}
 	}()
 
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt)
-	signal.Notify(ch, os.Kill)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Kill)
 
-	sig := <-ch
+	sig := <-c
 	l.Printf("Signal %s received, shutting down", sig)
 
 	// Graceful shutdown the server, waiting for max of 30 seconds until current operations is completed

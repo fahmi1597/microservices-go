@@ -29,6 +29,7 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - Refactoring the standard library to use the Gorilla framework
     - JSON validation 
     - API documentation with swagger
+    - CORS
 - [ ] gRPC microservices
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
