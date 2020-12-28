@@ -51,14 +51,14 @@ func main() {
 	getR.Handle("/docs", sh)
 	getR.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
-	ch := ghandlers.CORS(ghandlers.AllowedOrigins([]string{"http://localhost:8000"}))
+	ch := ghandlers.CORS(ghandlers.AllowedOrigins([]string{"*"}))
 	s := &http.Server{
-		Addr:         "localhost:3000",  // bind address
+		Addr:         "localhost:8000",  // bind address
 		Handler:      ch(sm),            // default handler
 		ErrorLog:     l,                 // set the logger for the server
-		ReadTimeout:  5 * time.Second,   // max time to read request from client
-		WriteTimeout: 10 * time.Second,  // max time to write request to client
-		IdleTimeout:  120 * time.Second, // max time for connection using TCP Keep-Alive
+		ReadTimeout:  time.Second * 15,  // max time to read request from client
+		WriteTimeout: time.Second * 15,  // max time to write request to client
+		IdleTimeout:  time.Second * 120, // max time for connection using TCP Keep-Alive
 	}
 
 	// Start the server inside go routines
