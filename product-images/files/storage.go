@@ -30,14 +30,8 @@ func New(basePath string, maxSize int) (*Storage, error) {
 	return &Storage{basePath: p}, nil
 }
 
-// returns absolute path
-func (sl *Storage) fullPath(path string) string {
-	// append the given path to the base path
-	return filepath.Join(sl.basePath, path)
-}
-
 // Save is a thing
-// It implements Storage interface
+// It implements StorageIO interface
 func (sl *Storage) Write(path string, contents io.Reader) error {
 
 	fp := sl.fullPath(path)
@@ -49,7 +43,8 @@ func (sl *Storage) Write(path string, contents io.Reader) error {
 
 	_, err = os.Stat(fp)
 	if err == nil {
-		if err = os.Remove(fp); err != nil {
+		err = os.Remove(fp)
+		if err != nil {
 			return xerrors.Errorf(": %w", err)
 		}
 	} else if !os.IsNotExist(err) {
@@ -68,4 +63,10 @@ func (sl *Storage) Write(path string, contents io.Reader) error {
 	}
 
 	return nil
+}
+
+// returns absolute path
+func (sl *Storage) fullPath(path string) string {
+	// append the given path to the base path
+	return filepath.Join(sl.basePath, path)
 }

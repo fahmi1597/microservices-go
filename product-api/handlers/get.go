@@ -13,7 +13,7 @@ import (
 
 // GetProducts is a handler that return list of products
 func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
-	p.l.Println("[DEBUG] Retrieve product list")
+	p.l.Println("[INFO] Retrieve product list")
 	resp.Header().Set("Content-Type", "application/json")
 	// Retrieve products
 	lprod := data.GetListProduct()
@@ -38,7 +38,7 @@ func (p *Products) GetProduct(resp http.ResponseWriter, req *http.Request) {
 
 	resp.Header().Set("Content-Type", "application/json")
 	id := p.getProductID(req)
-	p.l.Println("[DEBUG] Retrieve product id:", id)
+	p.l.Println("[INFO] Retrieve product id:", id)
 
 	prod, err := data.GetProduct(id)
 	switch err {

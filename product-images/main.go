@@ -33,9 +33,12 @@ func main() {
 	// Register the handlers
 
 	// Upload file handlers
-	ufh := sm.Methods(http.MethodPut).Subrouter()
-	ufh.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z.]+(?:jpg|jpeg|png|gif)$}", fh.Upload)
-	//fhPUT.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z.]+[a-z]{3,4}}", fh.ServeHTTP)
+	ufh := sm.Methods(http.MethodPost).Subrouter()
+
+	// REST way
+	ufh.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z.]+(?:jpg|jpeg|png|gif)$}", fh.UploadREST)
+	// Multipart way
+	ufh.HandleFunc("/", fh.UploadMultipart)
 
 	// Serve files handlers
 	sfh := sm.Methods(http.MethodGet).Subrouter()
@@ -45,8 +48,9 @@ func main() {
 	)
 
 	s := &http.Server{
-		Addr:         ":3030",          // Listen Address
+		Addr:         "localhost:8080", // Listen Address
 		Handler:      cors(sm),         // Default handler
+		ErrorLog:     l,                // Set the logger for the server
 		ReadTimeout:  time.Second * 15, // Max time duration to read request
 		WriteTimeout: time.Second * 15, // Max time duration to write response
 		IdleTimeout:  time.Second * 60, // Max time duration to keep connetion alive
