@@ -25,19 +25,19 @@ func main() {
 		l.Fatal("[ERROR] Unable to create storage", err)
 
 	}
-	// Create server mux, handlers, and CORS
+	// Create server mux, handlers, middleware and CORS
 	sm := mux.NewRouter()
 	cors := ghandlers.CORS(ghandlers.AllowedOrigins([]string{"*"}))
-	fh := handlers.New(l, fs)
+	fh := handlers.NewFileHandler(l, fs)
+	mw := handlers.GzipEncoding{}
 
 	// Register the handlers
 
 	// Upload file handlers
 	ufh := sm.Methods(http.MethodPost).Subrouter()
-
-	// REST way
+	// Handler in REST way
 	ufh.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z.]+(?:jpg|jpeg|png|gif)$}", fh.UploadREST)
-	// Multipart way
+	// Handler in Multipart way
 	ufh.HandleFunc("/", fh.UploadMultipart)
 
 	// Serve files handlers
@@ -46,6 +46,7 @@ func main() {
 		"/images/{id:[0-9]+}/{filename:[a-zA-Z.]+(?:jpg|jpeg|png|gif)$}",
 		http.StripPrefix("/images/", http.FileServer(http.Dir("./uploads"))),
 	)
+	sfh.Use(mw.GzipMiddleware)
 
 	s := &http.Server{
 		Addr:         "localhost:8080", // Listen Address

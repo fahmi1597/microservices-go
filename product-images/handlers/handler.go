@@ -12,7 +12,7 @@ type File struct {
 	store files.StorageIO
 }
 
-// New creates a new handlers
-func New(l *log.Logger, s files.StorageIO) *File {
+// NewFileHandler creates a new handlers
+func NewFileHandler(l *log.Logger, s files.StorageIO) *File {
 	return &File{l, s}
 }
