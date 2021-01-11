@@ -8,11 +8,13 @@ import (
 	"os/signal"
 	"time"
 
+	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/product-api/data"
 	"github.com/fahmi1597/microservices-go/product-api/handlers"
 	"github.com/go-openapi/runtime/middleware"
 	ghandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -21,8 +23,17 @@ func main() {
 	l := log.New(os.Stdout, "product-api: ", log.LstdFlags)
 	v := data.NewValidator()
 
-	// The handlers
-	ph := handlers.NewProduct(l, v)
+	// Create grpc connection
+	grpcConn, err := grpc.Dial("localhost:9002", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	defer grpcConn.Close()
+
+	// New instance of grpc currency client
+	cc := protogc.NewCurrencyClient(grpcConn)
+	// New instance of product handler
+	ph := handlers.NewProduct(l, v, cc)
 
 	// Create servemux
 	sm := mux.NewRouter()
@@ -53,7 +64,7 @@ func main() {
 
 	ch := ghandlers.CORS(ghandlers.AllowedOrigins([]string{"*"}))
 	s := &http.Server{
-		Addr:         "localhost:8000",  // bind address
+		Addr:         "localhost:9000",  // bind address
 		Handler:      ch(sm),            // default handler
 		ErrorLog:     l,                 // set the logger for the server
 		ReadTimeout:  time.Second * 15,  // max time to read request from client
@@ -84,7 +95,7 @@ func main() {
 		cancel()
 	}()
 
-	err := s.Shutdown(tc)
+	err = s.Shutdown(tc)
 	if err != nil {
 		l.Fatalf("Shutdown failed: %+v", err)
 	}
