@@ -14,15 +14,17 @@ import (
 func main() {
 	log := hclog.Default()
 
+	// Create new instance of gRPC server and Currency server
 	grpcServer := grpc.NewServer()
 	currencyServer := server.NewCurrencyServer(log)
 
+	// Register Currency server.
 	protogc.RegisterCurrencyServer(grpcServer, currencyServer)
 
 	// don't use in production
 	reflection.Register(grpcServer)
 
-	nl, err := net.Listen("tcp", "localhost:3000")
+	nl, err := net.Listen("tcp", "localhost:9002")
 	if err != nil {
 		log.Error("Error", err)
 		os.Exit(1)
