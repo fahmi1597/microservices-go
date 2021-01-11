@@ -21,7 +21,7 @@ $ go get google.golang.org/protobuf/cmd/protoc-gen-go \
          google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
 
-## Generated Code
+## Generate Go Code
 
 ```
 protoc -I protos/ protos/currency.proto --go_out=protos/currency --go-grpc_out=protos/currency --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative
