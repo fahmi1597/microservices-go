@@ -49,7 +49,7 @@ func main() {
 	sfh.Use(mw.GzipMiddleware)
 
 	s := &http.Server{
-		Addr:         "localhost:8080", // Listen Address
+		Addr:         "localhost:9001", // Listen Address
 		Handler:      cors(sm),         // Default handler
 		ErrorLog:     l,                // Set the logger for the server
 		ReadTimeout:  time.Second * 15, // Max time duration to read request

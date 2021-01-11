@@ -6,19 +6,21 @@ import (
 	"net/http"
 	"strconv"
 
+	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/product-api/data"
 	"github.com/gorilla/mux"
 )
 
 // Products is a handler for getting and updating products
 type Products struct {
-	l *log.Logger
-	v *data.Validation
+	l  *log.Logger
+	v  *data.Validation
+	cc protogc.CurrencyClient
 }
 
 // NewProduct creates a handler where logger is injected
-func NewProduct(l *log.Logger, v *data.Validation) *Products {
-	return &Products{l, v}
+func NewProduct(l *log.Logger, v *data.Validation, cc protogc.CurrencyClient) *Products {
+	return &Products{l, v, cc}
 }
 
 // KeyProduct is a key of product used in request context

@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
+	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/product-api/data"
 )
 
@@ -15,6 +17,7 @@ import (
 func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
 	p.l.Println("[INFO] Retrieve product list")
 	resp.Header().Set("Content-Type", "application/json")
+
 	// Retrieve products
 	lprod := data.GetListProduct()
 
@@ -22,7 +25,7 @@ func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
 	err := data.ToJSON(lprod, resp)
 	if err != nil {
 		p.l.Println("[ERROR] Failed to serialize data", http.StatusInternalServerError)
-		http.Error(resp, "Error reading products", http.StatusInternalServerError)
+		http.Error(resp, "Error fetching products", http.StatusInternalServerError)
 		return
 	}
 }
@@ -57,6 +60,18 @@ func (p *Products) GetProduct(resp http.ResponseWriter, req *http.Request) {
 		data.ToJSON(&GenericError{Message: err.Error()}, resp)
 		return
 	}
+	// Dummy rate request
+	rr := &protogc.RateRequest{
+		Base:        protogc.Currencies(protogc.Currencies_value["IDR"]).String(),
+		Destination: protogc.Currencies(protogc.Currencies_value["USD"]).String(),
+	}
+	// Get exchange rate
+	excRate, err := p.cc.GetRate(context.Background(), rr)
+	if err != nil {
+		p.l.Println("[ERROR] Getting exchange rate")
+		data.ToJSON(&GenericError{Message: err.Error()}, resp)
+	}
+	prod.Price = prod.Price * excRate.Rate
 
 	// Serialize product to JSON
 	err = data.ToJSON(prod, resp)

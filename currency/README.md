@@ -38,28 +38,28 @@ go install github.com/fullstorydev/grpcurl/cmd/grpcurl
 ### List services
 
 ```
-grpcurl.exe --plaintext localhost:3000 list
+grpcurl.exe --plaintext localhost:9002 list
 ```
 
 ### List methods
 
 ```
-grpcurl.exe --plaintext localhost:3000 list currency.Currency
+grpcurl.exe --plaintext localhost:9002 list currency.Currency
 ```
 
 ### Describe GetRate method
 
 ```
-grpcurl.exe --plaintext localhost:3000 describe currency.Currency.GetRate
+grpcurl.exe --plaintext localhost:9002 describe currency.Currency.GetRate
 ```
 ### Describe RateRequest detail
 
 ```
-grpcurl.exe --plaintext localhost:3000 describe currency.RateRequest
+grpcurl.exe --plaintext localhost:9002 describe currency.RateRequest
 ```
 
 ### Send a request to a method
 
 ```
-grpcurl.exe --plaintext -d '{"base":"GBP", "destionation":"JPY"}' localhost:3000 currency.Currency.GetRate
+grpcurl.exe --plaintext -d '{"base":"GBP", "destionation":"JPY"}' localhost:9002 currency.Currency.GetRate
 ```
