@@ -10,15 +10,15 @@ service Currency {
 
 // RateRequest defines the request for a GetRate call
 message RateRequest {
-    string Base = 1 [json_name = "base"];
-    string Destination = 2 [json_name = "destination"];
+    Currencies Base = 1 [json_name = "base"];
+    Currencies Destination = 2 [json_name = "destination"];
 }
 
 // RateResponse is the response from a GetRate call, it contains
 // rate which is a floating point number and can be used to convert between the 
 // two currencies specified in the request.
 message RateResponse {
-    float Rate = 1 [json_name = "float"];
+    double Rate = 1 [json_name = "rate"];
 }
 
 // Currencies is an enum which represents the allowed currencies for the API
