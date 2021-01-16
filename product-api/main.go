@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,14 +13,20 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	ghandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-hclog"
 	"google.golang.org/grpc"
 )
 
 func main() {
 
-	// Logging
-	l := log.New(os.Stdout, "product-api: ", log.LstdFlags)
-	v := data.NewValidator()
+	// Create a new instance of logger and validator
+	// log := log.New(os.Stdout, "product-api: ", log.LstdFlags)
+	log := hclog.New(&hclog.LoggerOptions{
+		Name:  "product-api",
+		Level: hclog.LevelFromString("DEBUG"),
+	})
+
+	validator := data.NewValidator()
 
 	// Create grpc connection
 	grpcConn, err := grpc.Dial("localhost:9002", grpc.WithInsecure())
@@ -32,52 +37,60 @@ func main() {
 
 	// New instance of grpc currency client
 	cc := protogc.NewCurrencyClient(grpcConn)
-	// New instance of product handler
-	ph := handlers.NewProduct(l, v, cc)
 
-	// Create servemux
+	// New instance of ProductsDB
+	pdb := data.NewProductsDB(log, cc)
+
+	// New instance of Products handler
+	ph := handlers.NewProductHandler(log, validator, pdb)
+
+	// Create ServeMux
 	sm := mux.NewRouter()
 
-	// Create and register the handlers for each subrouter
-	// GET
-	getR := sm.Methods(http.MethodGet).Subrouter()
-	getR.HandleFunc("/products", ph.GetProducts)
-	getR.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
-	// POST
-	postR := sm.Methods(http.MethodPost).Subrouter()
-	postR.HandleFunc("/products", ph.AddProduct)
-	postR.Use(ph.MiddlewareValidation)
-	// PUT
-	putR := sm.Methods(http.MethodPut).Subrouter()
-	putR.HandleFunc("/products", ph.UpdateProduct)
-	putR.Use(ph.MiddlewareValidation)
-	// DELETE *not working yet*
-	delR := sm.Methods(http.MethodDelete).Subrouter()
-	delR.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+	// Create and register the handlers
+	routerGet := sm.Methods(http.MethodGet).Subrouter()
+	routerGet.HandleFunc("/products", ph.GetProductList).Queries("currency", "{[A-Z]{3}}")
+	routerGet.HandleFunc("/products", ph.GetProductList)
+	routerGet.HandleFunc("/products/{id:[0-9]+}", ph.GetProductByID)
 
-	// handler for documentation
+	routerPost := sm.Methods(http.MethodPost).Subrouter()
+	routerPost.HandleFunc("/products", ph.AddProduct)
+	routerPost.Use(ph.MiddlewareValidation)
+
+	routerPut := sm.Methods(http.MethodPut).Subrouter()
+	routerPut.HandleFunc("/products", ph.UpdateProduct)
+	routerPut.Use(ph.MiddlewareValidation)
+
+	routerDel := sm.Methods(http.MethodDelete).Subrouter()
+	routerDel.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+
+	// Handler for swagger documentation
 	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
 	sh := middleware.Redoc(opts, nil)
 
-	getR.Handle("/docs", sh)
-	getR.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
+	routerGet.Handle("/docs", sh)
+	routerGet.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
+	// Allow cross-origin resource sharing
 	ch := ghandlers.CORS(ghandlers.AllowedOrigins([]string{"*"}))
+
+	// HTTP Server with custom configuration
 	s := &http.Server{
-		Addr:         "localhost:9000",  // bind address
-		Handler:      ch(sm),            // default handler
-		ErrorLog:     l,                 // set the logger for the server
-		ReadTimeout:  time.Second * 15,  // max time to read request from client
-		WriteTimeout: time.Second * 15,  // max time to write request to client
-		IdleTimeout:  time.Second * 120, // max time for connection using TCP Keep-Alive
+		Addr:         "localhost:9000",                                   // bind address
+		Handler:      ch(sm),                                             // default handler wrapped with
+		ErrorLog:     log.StandardLogger(&hclog.StandardLoggerOptions{}), // set the logger for the server
+		ReadTimeout:  time.Second * 15,                                   // max time to read request from client
+		WriteTimeout: time.Second * 15,                                   // max time to write request to client
+		IdleTimeout:  time.Second * 120,                                  // max time for connection using TCP Keep-Alive
 	}
 
 	// Start the server inside go routines
 	go func() {
-		l.Println("Server starting on", s.Addr)
+		log.Info("Server starting on", "address", s.Addr)
 		err := s.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			l.Fatalf("[ERROR] starting server: %s\n", err)
+			log.Error("Failed to start server", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -86,7 +99,7 @@ func main() {
 	signal.Notify(c, os.Kill)
 
 	sig := <-c
-	l.Printf("Signal %s received, shutting down", sig)
+	log.Info("Shutting down", "signal", sig)
 
 	// Graceful shutdown the server, waiting for max of 30 seconds until current operations is completed
 	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -97,7 +110,7 @@ func main() {
 
 	err = s.Shutdown(tc)
 	if err != nil {
-		l.Fatalf("Shutdown failed: %+v", err)
+		log.Error("Shutdown failed", "error", err)
 	}
 	os.Exit(0)
 }

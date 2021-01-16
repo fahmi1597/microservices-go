@@ -27,12 +27,12 @@ github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymF
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.7/go.mod h1:cwu0lG7PUMfa9snN8LXBig5ynNVH9qI8YYLbd1fK2po=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/fahmi1597/microservices-go v0.0.0-20201230205933-53ed1c46984c h1:j0Vl2FPaFekmmS/oIyyVyFbenXIeoHMgahpZv6CXXmI=
-github.com/fahmi1597/microservices-go v0.0.0-20210111002525-dec647cc0560 h1:DacN+5dHdQwLGt0w0yJsxE3CKB+K6Bw/NopxvY8SF/k=
-github.com/fahmi1597/microservices-go/currency v0.0.0-20201230205933-53ed1c46984c h1:/CjRO73dyndCmntkaJ5XNlL4qyfsas0SlgIFEWkFu2M=
-github.com/fahmi1597/microservices-go/currency v0.0.0-20201230205933-53ed1c46984c/go.mod h1:INP5ZKm85cS9cBZWSjt64hlkcaMWUj5rfBqxN/GqJ8I=
-github.com/fahmi1597/microservices-go/currency v0.0.0-20210111002525-dec647cc0560 h1:cIoHJjkUiC2zxKGi0OGPF7Xm608+4/Vl7a2x67Ze1Fw=
-github.com/fahmi1597/microservices-go/currency v0.0.0-20210111002525-dec647cc0560/go.mod h1:INP5ZKm85cS9cBZWSjt64hlkcaMWUj5rfBqxN/GqJ8I=
+github.com/fahmi1597/microservices-go v0.0.0-20210113124713-4cd8088cd33d h1:TOsz+YWm+9DP3+BxeFUAI5Xz5n7cCoKhDeAok7+jx/U=
+github.com/fahmi1597/microservices-go/currency v0.0.0-20210111011408-6a305c330dd8 h1:JHjQ0V4E4fW0ZnmU5xM3KX/7mNHG68L21oLu7ITu17E=
+github.com/fahmi1597/microservices-go/currency v0.0.0-20210111011408-6a305c330dd8/go.mod h1:INP5ZKm85cS9cBZWSjt64hlkcaMWUj5rfBqxN/GqJ8I=
+github.com/fahmi1597/microservices-go/currency v0.0.0-20210113124713-4cd8088cd33d h1:e/PN16X+58wfDz6Iwqfj3I/xfJswU2cLoh33AGvP468=
+github.com/fahmi1597/microservices-go/currency v0.0.0-20210113124713-4cd8088cd33d/go.mod h1:3n2sJmZ67N7uv6bLPodDkRsrMRri93jqVtNor8r7nU0=
+github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/felixge/httpsnoop v1.0.1 h1:lvB5Jl89CsZtGIWuTcDM1E/vkVs49/Ml7JJe07l8SPQ=
 github.com/felixge/httpsnoop v1.0.1/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
@@ -184,6 +184,7 @@ github.com/gorilla/handlers v1.5.1 h1:9lRY6j8DEeeBT10CvO9hGW0gmky0BprnvDI5vfhUHH
 github.com/gorilla/handlers v1.5.1/go.mod h1:t8XrUpc4KVXb7HGyJ4/cEnwQiaxrX/hz1Zv/4g96P1Q=
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
+github.com/hashicorp/go-hclog v0.15.0 h1:qMuK0wxsoW4D0ddCCYwPSTm4KQv1X1ke3WmPWZ0Mvsk=
 github.com/hashicorp/go-hclog v0.15.0/go.mod h1:whpDNt7SSdeAju8AWKIWsul05p54N/39EeqMAyrmvFQ=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
@@ -214,8 +215,10 @@ github.com/mailru/easyjson v0.7.6 h1:8yTIVnZgCoiM1TgqoeTl+LfU5Jg6/xL3QhGQnimLYnA
 github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/markbates/oncer v0.0.0-20181203154359-bf2de49a0be2/go.mod h1:Ld9puTsIW75CHf65OeIOkyKbteujpZVXDpWK6YGZbxE=
 github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kNSCBdG0=
+github.com/mattn/go-colorable v0.1.4 h1:snbPLB8fVfU9iwbbo30TPtbLRzwWu6aJS6Xh4eaaviA=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-isatty v0.0.8/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
+github.com/mattn/go-isatty v0.0.10 h1:qxFzApOv4WsAL965uUPIsXzAKCZxN2p9UqdhFS4ZW10=
 github.com/mattn/go-isatty v0.0.10/go.mod h1:qgIWMr58cqv1PHHyhnkY9lrL7etaEgOFcMEpPG5Rm84=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.3.2/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=

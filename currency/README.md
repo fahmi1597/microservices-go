@@ -61,5 +61,5 @@ grpcurl.exe --plaintext localhost:9002 describe currency.RateRequest
 ### Send a request to a method
 
 ```
-grpcurl.exe --plaintext -d '{"base":"GBP", "destionation":"JPY"}' localhost:9002 currency.Currency.GetRate
+grpcurl.exe --plaintext -d '{"base":"EUR", "destination":"JPY"}' localhost:9002 currency.Currency.GetRate
 ```

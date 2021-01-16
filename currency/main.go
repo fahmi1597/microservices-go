@@ -3,7 +3,10 @@ package main
 import (
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/fahmi1597/microservices-go/currency/data"
 	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/currency/server"
 	"github.com/hashicorp/go-hclog"
@@ -12,23 +15,49 @@ import (
 )
 
 func main() {
-	log := hclog.Default()
+	l := hclog.New(&hclog.LoggerOptions{
+		Name:  "grpc currency",
+		Level: hclog.LevelFromString("DEBUG"),
+	})
 
-	// Create new instance of gRPC server and Currency server
-	grpcServer := grpc.NewServer()
-	currencyServer := server.NewCurrencyServer(log)
+	// Create a new instance of gRPC Server
+	gs := grpc.NewServer()
 
-	// Register Currency server.
-	protogc.RegisterCurrencyServer(grpcServer, currencyServer)
-
-	// don't use in production
-	reflection.Register(grpcServer)
-
-	nl, err := net.Listen("tcp", "localhost:9002")
+	er, err := data.NewExchangeRates(l)
 	if err != nil {
-		log.Error("Error", err)
+		l.Error("Unable to create currency exchange rates")
 		os.Exit(1)
 	}
 
-	grpcServer.Serve(nl)
+	// Create new instance of CurrencyServer
+	cs := server.NewCurrencyServer(l, er)
+
+	// Register the gRPC currency server
+	protogc.RegisterCurrencyServer(gs, cs)
+
+	// Don't use in production
+	reflection.Register(gs)
+
+	nl, err := net.Listen("tcp", "localhost:9002")
+	if err != nil {
+		l.Error("Error", err)
+		os.Exit(1)
+	}
+
+	go func() {
+		l.Info("Server starting", "address", nl.Addr().String())
+		err := gs.Serve(nl)
+		if err != grpc.ErrServerStopped {
+			l.Error("Unclean shutdown", err)
+			os.Exit(1)
+		}
+
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
+	sig := <-c
+	l.Info("Shutting down", "signal", sig)
+	gs.GracefulStop()
+
 }

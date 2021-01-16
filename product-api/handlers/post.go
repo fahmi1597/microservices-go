@@ -16,10 +16,11 @@ import (
 
 // AddProduct is a handler for creating a product
 func (p *Products) AddProduct(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
 
 	prod := req.Context().Value(KeyProduct{}).(data.Product)
 
-	p.l.Printf("[DEBUG] Inserting product: %#v\n", prod)
+	p.log.Debug("Inserting product", "product", prod)
 	data.AddProduct(prod)
 
 }

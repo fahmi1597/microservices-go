@@ -1,65 +1,47 @@
 package data
 
 import (
-	"bytes"
+	"fmt"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-func TestProductMissingNameReturnsErr(t *testing.T) {
-	p := Product{
-		Price: 1.22,
-	}
-
-	v := NewValidator()
-	err := v.Validate(p)
-	assert.Len(t, err, 1)
+func TestGetProductList(t *testing.T) {
+	p := ProductsDB{}
+	p.GetProductList("")
 }
 
-func TestProductMissingPriceReturnsErr(t *testing.T) {
-	p := Product{
-		Name:  "abc",
-		Price: -1,
-	}
-
-	v := NewValidator()
-	err := v.Validate(p)
-	assert.Len(t, err, 1)
+func TestGetProduct(t *testing.T) {
+	p := ProductsDB{}
+	p.GetProductByID(1, "")
 }
 
-func TestProductInvalidSKUReturnsErr(t *testing.T) {
+func TestAddProduct(t *testing.T) {
 	p := Product{
-		Name:  "abc",
-		Price: 1.22,
-		SKU:   "abc",
+		Name:        "aaa",
+		Description: "aaa",
+		Price:       1.23,
+		SKU:         "aaa-bbb-aaa",
 	}
 
-	v := NewValidator()
-	err := v.Validate(p)
-	assert.Len(t, err, 1)
+	pdb := ProductsDB{}
+	AddProduct(p)
+	ps, _ := pdb.GetProductList("")
+	fmt.Printf("%#v \n", ps)
+	p1, _ := pdb.GetProductByID(len(ps), "")
+	fmt.Printf("%#v \n", p1)
+
 }
 
-func TestValidProductDoesNOTReturnsErr(t *testing.T) {
+func TestUpdateProduct(t *testing.T) {
 	p := Product{
-		Name:  "abc",
-		Price: 1.22,
-		SKU:   "abc-efg-hji",
+		ID:          1,
+		Name:        "aaa",
+		Description: "aaa",
+		Price:       1.23,
+		SKU:         "aaa-bbb-aaa",
 	}
-
-	v := NewValidator()
-	err := v.Validate(p)
-	assert.Len(t, err, 1)
-}
-
-func TestProductsToJSON(t *testing.T) {
-	ps := []*Product{
-		{
-			Name: "abc",
-		},
-	}
-
-	b := bytes.NewBufferString("")
-	err := ToJSON(ps, b)
-	assert.NoError(t, err)
+	pdb := ProductsDB{}
+	pdb.GetProductList("")
+	UpdateProduct(p)
+	pdb.GetProductList("")
 }

@@ -15,40 +15,18 @@ type Validation struct {
 // NewValidator creates a new Validation type
 func NewValidator() *Validation {
 
-	validate := validator.New()
+	v := validator.New()
 	// Register custom validation for sku field
-	validate.RegisterValidation("sku", validateSKU)
+	v.RegisterValidation("sku", validateSKU)
 
-	return &Validation{validate}
+	return &Validation{validate: v}
 }
 
-func validateSKU(fl validator.FieldLevel) bool {
-	// sku format : abc-123-xy
-	fs := fl.Field().String()
-	re := regexp.MustCompile(`[a-z]{3}-[0-9]{3}-[a-z]{2}`)
-	m := re.FindAllString(fs, -1)
+// Validate used for struct validation
+func (v *Validation) Validate(i interface{}) ValidationErrors {
 
-	if len(m) != 1 {
-		return false
-	}
-
-	return true
-}
-
-// Validate is a struct validator
-func (v *Validation) Validate(p interface{}) ValidationErrors {
-
-	// vErr := v.validate.Struct(p)
-
-	// if vErr != nil {
-	// 	return vErr
-	// }
-
-	// return nil
-
-	// Custom error message
-	vErr := v.validate.Struct(p)
-
+	// Custom validate struct to wrap validation errors that expose field error
+	vErr := v.validate.Struct(i)
 	if vErr != nil {
 		var returnErrs []ValidationError
 		for _, err := range vErr.(validator.ValidationErrors) {
@@ -60,6 +38,18 @@ func (v *Validation) Validate(p interface{}) ValidationErrors {
 
 	return nil
 
+	// vErr := v.validate.Struct(i).(validator.ValidationErrors)
+
+	// if len(vErr) == 0 {
+	// 	return nil
+	// }
+
+	// var returnErrs []ValidationError
+	// for _, err := range vErr {
+	// 	ve := ValidationError{err.(validator.FieldError)}
+	// 	returnErrs = append(returnErrs, ve)
+	// }
+	// return returnErrs
 }
 
 // ValidationError wraps the validators FieldError so we do not
@@ -88,4 +78,16 @@ func (ves ValidationErrors) Errors() []string {
 	}
 
 	return errs
+}
+
+func validateSKU(fl validator.FieldLevel) bool {
+	// sku format : abc-abc-xy
+	re := regexp.MustCompile(`[a-z]{3}-[0-9]{3}-[a-z]{3}`)
+	match := re.FindAllString(fl.Field().String(), -1)
+
+	if len(match) == 1 {
+		return true
+	}
+
+	return false
 }

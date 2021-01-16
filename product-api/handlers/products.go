@@ -2,51 +2,41 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
-	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/product-api/data"
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-hclog"
 )
 
 // Products is a handler for getting and updating products
 type Products struct {
-	l  *log.Logger
-	v  *data.Validation
-	cc protogc.CurrencyClient
-}
-
-// NewProduct creates a handler where logger is injected
-func NewProduct(l *log.Logger, v *data.Validation, cc protogc.CurrencyClient) *Products {
-	return &Products{l, v, cc}
+	log       hclog.Logger
+	validator *data.Validation
+	productDB *data.ProductsDB
 }
 
 // KeyProduct is a key of product used in request context
 type KeyProduct struct{}
+
+// ErrInvalidProductPath is an error message when the product path is not valid
+// reserved for 404 ?
+var ErrInvalidProductPath = fmt.Errorf("Invalid Path, path should be /products/[id]")
+
+// NewProductHandler creates a new Products handler
+func NewProductHandler(l hclog.Logger, v *data.Validation, pdb *data.ProductsDB) *Products {
+	return &Products{l, v, pdb}
+}
 
 func (p *Products) getProductID(req *http.Request) int {
 
 	vars := mux.Vars(req)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		p.l.Println("[ERROR] Converting product id", id)
+		p.log.Error("Failed to convert product id", "id", id)
 		panic(err)
 	}
 
 	return id
-}
-
-// ErrInvalidProductPath is an error message when the product path is not valid
-var ErrInvalidProductPath = fmt.Errorf("Invalid Path, path should be /products/[id]")
-
-// GenericError is a generic error message returned by a server
-type GenericError struct {
-	Message string `json:"message"`
-}
-
-// ValidationError is a collection of validation error messages
-type ValidationError struct {
-	Messages []string `json:"messages"`
 }

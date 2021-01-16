@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
-	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/product-api/data"
 )
 
@@ -13,19 +11,25 @@ import (
 // responses:
 //	200: productsResponse
 
-// GetProducts is a handler that return list of products
-func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
-	p.l.Println("[INFO] Retrieve product list")
+// GetProductList is a handler that return list of products
+func (p *Products) GetProductList(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
-	// Retrieve products
-	lprod := data.GetListProduct()
+	cur := req.URL.Query().Get("currency")
+	p.log.Debug("Retrieving product list", "currency", cur)
+
+	// Retrieve product list
+	prods, err := p.productDB.GetProductList(cur)
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, resp)
+		return
+	}
 
 	// Serialize products to JSON
-	err := data.ToJSON(lprod, resp)
+	err = data.ToJSON(&prods, resp)
 	if err != nil {
-		p.l.Println("[ERROR] Failed to serialize data", http.StatusInternalServerError)
-		http.Error(resp, "Error fetching products", http.StatusInternalServerError)
+		p.log.Error("Failed to serialize data", "error", err)
 		return
 	}
 }
@@ -36,48 +40,37 @@ func (p *Products) GetProducts(resp http.ResponseWriter, req *http.Request) {
 //	200: productResponse
 //	404: errorResponse
 
-// GetProduct is a handler that return a product
-func (p *Products) GetProduct(resp http.ResponseWriter, req *http.Request) {
-
+// GetProductByID is a handler that return a product
+func (p *Products) GetProductByID(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
-	id := p.getProductID(req)
-	p.l.Println("[INFO] Retrieve product id:", id)
 
-	prod, err := data.GetProduct(id)
+	id := p.getProductID(req)
+	cur := req.URL.Query().Get("currency")
+	p.log.Debug("Retrieving product", "id", id, "currency", cur)
+
+	prod, err := p.productDB.GetProductByID(id, cur)
 	switch err {
 	case nil:
 
 	case data.ErrProductNotFound:
-		p.l.Println("[ERROR] Retrieving product", err)
+		p.log.Error("Failed to retrieve product id", "id", id, "error", err)
 
 		resp.WriteHeader(http.StatusNotFound)
 		data.ToJSON(&GenericError{Message: err.Error()}, resp)
 		return
 	default:
-		p.l.Println("[ERROR] Retrieving product", err)
+		p.log.Error("Failed to retrieve product id", "id", id, "error", err)
 
 		resp.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, resp)
 		return
 	}
-	// Dummy rate request
-	rr := &protogc.RateRequest{
-		Base:        protogc.Currencies(protogc.Currencies_value["IDR"]).String(),
-		Destination: protogc.Currencies(protogc.Currencies_value["USD"]).String(),
-	}
-	// Get exchange rate
-	excRate, err := p.cc.GetRate(context.Background(), rr)
-	if err != nil {
-		p.l.Println("[ERROR] Getting exchange rate")
-		data.ToJSON(&GenericError{Message: err.Error()}, resp)
-	}
-	prod.Price = prod.Price * excRate.Rate
 
 	// Serialize product to JSON
-	err = data.ToJSON(prod, resp)
+	err = data.ToJSON(&prod, resp)
 	if err != nil {
-		p.l.Println("[ERROR] Failed to serialize data", http.StatusInternalServerError)
-		http.Error(resp, "Error reading product", http.StatusInternalServerError)
+		p.log.Error("Failed to serialize data", "error", err)
 		return
 	}
+
 }

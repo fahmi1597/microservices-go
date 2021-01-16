@@ -35,6 +35,7 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - GZIP Compression
 - [ ] gRPC microservices
     - Introduction to gRPC and Protocol Buffers
+    - Connecting to gRPC server as client
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
 - [ ] Continuous Delivery

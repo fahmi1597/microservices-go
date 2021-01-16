@@ -9,7 +9,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	cfg := client.DefaultTransportConfig().WithHost("localhost:3000")
+	cfg := client.DefaultTransportConfig().WithHost("localhost:9000")
 	c := client.NewHTTPClientWithConfig(nil, cfg)
 	p := products.NewGetProductsParams()
 	resp, err := c.Products.GetProducts(p)
@@ -18,5 +18,5 @@ func TestClient(t *testing.T) {
 	}
 
 	fmt.Printf("%#v", resp.GetPayload()[0])
-	t.Fail()
+	//t.Fail()
 }
