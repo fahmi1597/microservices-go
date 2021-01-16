@@ -1,14 +1,14 @@
 ## Request method test
 get:
-	curl -s localhost:9000/products
+	curl -s localhost:9000/products | jq
 get_1:
-	curl -s localhost:9000/products/1
+	curl -s localhost:9000/products/1 | jq
 post:
-	curl -s localhost:9000/products -d '{"name":"tea", "description":"A cup of tea", "price":0.25, "sku":"xyz-321-ab"}'
+	curl -s localhost:9000/products -d '{"name":"tea", "description":"A cup of tea", "price":0.25, "sku":"aaa-111-aaa"}'
 put:
-	curl -sX PUT localhost:9000/products -d '{"id":1,"name":"milk", "description":"A cup of milk", "price":0.25, "sku":"xyz-321-ab"}'
+	curl -sX PUT localhost:9000/products -d '{"id":1,"name":"milk", "description":"A cup of milk", "price":0.25, "sku":"bbb-222-bbb"}'
 delete:
-	curl -sX DELETE localhost:9000/products -d '{"id":2}'
+	curl -sX DELETE localhost:9000/products/1
 
 ## Swagger
 swagger:

@@ -16,11 +16,12 @@ import (
 
 // UpdateProduct is a handler for updating a product
 func (p *Products) UpdateProduct(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/json")
 
 	prod := req.Context().Value(KeyProduct{}).(data.Product)
-	err := data.UpdateProduct(prod)
-	p.l.Println("[DEBUG] Updating product id: ", prod.ID)
+	p.log.Debug("Updating product", "id", prod.ID)
 
+	err := data.UpdateProduct(prod)
 	if err == data.ErrProductNotFound {
 		resp.WriteHeader(http.StatusNotFound)
 		data.ToJSON(&GenericError{Message: "Product not found in database"}, resp)

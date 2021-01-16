@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	rate "github.com/fahmi1597/microservices-go/currency/data"
+	"github.com/fahmi1597/microservices-go/currency/data"
 	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/fahmi1597/microservices-go/currency/server"
 	"github.com/hashicorp/go-hclog"
@@ -15,41 +15,40 @@ import (
 )
 
 func main() {
-	log := hclog.New(&hclog.LoggerOptions{
+	l := hclog.New(&hclog.LoggerOptions{
 		Name:  "grpc currency",
 		Level: hclog.LevelFromString("DEBUG"),
 	})
 
-	// Create a new instance of gRPC server
-	grpcServer := grpc.NewServer()
+	// Create a new instance of gRPC Server
+	gs := grpc.NewServer()
 
-	// Generate currency exchange rates
-	currencyRates, err := rate.NewExchangeRates(log)
+	er, err := data.NewExchangeRates(l)
 	if err != nil {
-		log.Error("Unable to generate currency exchange rates")
+		l.Error("Unable to create currency exchange rates")
 		os.Exit(1)
 	}
 
-	// Create new instance of Currency server
-	currencyServer := server.NewCurrencyServer(log, currencyRates)
+	// Create new instance of CurrencyServer
+	cs := server.NewCurrencyServer(l, er)
 
-	// Register the Currency server.
-	protogc.RegisterCurrencyServer(grpcServer, currencyServer)
+	// Register the gRPC currency server
+	protogc.RegisterCurrencyServer(gs, cs)
 
 	// Don't use in production
-	reflection.Register(grpcServer)
+	reflection.Register(gs)
 
 	nl, err := net.Listen("tcp", "localhost:9002")
 	if err != nil {
-		log.Error("Error", err)
+		l.Error("Error", err)
 		os.Exit(1)
 	}
 
 	go func() {
-		log.Info("Server starting", "address", nl.Addr().String())
-		err := grpcServer.Serve(nl)
+		l.Info("Server starting", "address", nl.Addr().String())
+		err := gs.Serve(nl)
 		if err != grpc.ErrServerStopped {
-			log.Error("Unclean shutdown", err)
+			l.Error("Unclean shutdown", err)
 			os.Exit(1)
 		}
 
@@ -58,7 +57,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 	sig := <-c
-	log.Warn("Shutting down", "signal", sig)
-	grpcServer.GracefulStop()
+	l.Info("Shutting down", "signal", sig)
+	gs.GracefulStop()
 
 }

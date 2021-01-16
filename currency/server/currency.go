@@ -3,29 +3,32 @@ package server
 import (
 	"context"
 
-	rate "github.com/fahmi1597/microservices-go/currency/data"
+	"github.com/fahmi1597/microservices-go/currency/data"
 
 	// alias for protoc generated code
 	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/hashicorp/go-hclog"
 )
 
-// Currency is a gRPC server, it implements the method defined in CurrencyServer interface
-type Currency struct {
+// CurrencyServer is a gRPC server, it implements the method defined in CurrencyServer interface
+type CurrencyServer struct {
 	log   hclog.Logger
-	rates *rate.ExchangeRates
+	rates *data.ExchangeRates
 	protogc.UnimplementedCurrencyServer
 }
 
 // NewCurrencyServer creates a new Currency server
-func NewCurrencyServer(l hclog.Logger, r *rate.ExchangeRates) *Currency {
-	return &Currency{log: l}
+func NewCurrencyServer(l hclog.Logger, r *data.ExchangeRates) *CurrencyServer {
+	return &CurrencyServer{
+		log:   l,
+		rates: r,
+	}
 }
 
 // GetRate implements CurrencyServer GetRate method from the protoc generated code
-func (cs *Currency) GetRate(ctx context.Context, rr *protogc.RateRequest) (*protogc.RateResponse, error) {
-	cs.log.Info(
-		"Handle GetRate",
+func (cs *CurrencyServer) GetRate(ctx context.Context, rr *protogc.RateRequest) (*protogc.RateResponse, error) {
+	cs.log.Debug(
+		"GetRate",
 		"base", rr.GetBase(),
 		"destination",
 		rr.GetDestination(),
@@ -35,5 +38,6 @@ func (cs *Currency) GetRate(ctx context.Context, rr *protogc.RateRequest) (*prot
 	if err != nil {
 		return nil, err
 	}
+	// spew.Dump(rateRatio)
 	return &protogc.RateResponse{Rate: rateRatio}, nil
 }

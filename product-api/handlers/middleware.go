@@ -9,14 +9,13 @@ import (
 
 // MiddlewareValidation is a middleware handler for product validation before going to the next handler
 func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 
-		prod := &data.Product{}
+		prod := data.Product{}
 
-		err := data.FromJSON(prod, req.Body)
+		err := data.FromJSON(&prod, req.Body)
 		if err != nil {
-			p.l.Println("[ERROR] Deserialize product", http.StatusBadRequest)
+			p.log.Error("Failed to deserialize product", "error", err.Error())
 
 			resp.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, resp)
@@ -24,9 +23,9 @@ func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 		}
 
 		// Validate products
-		vErr := p.v.Validate(prod)
+		vErr := p.validator.Validate(prod)
 		if len(vErr) != 0 {
-			p.l.Println("[ERROR] Validating product", http.StatusBadRequest)
+			p.log.Error("Failed to validate product", "error", vErr.Errors())
 
 			resp.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&ValidationError{Messages: vErr.Errors()}, resp)
@@ -34,7 +33,7 @@ func (p *Products) MiddlewareValidation(next http.Handler) http.Handler {
 		}
 
 		// Create context of validated product
-		ctx := context.WithValue(req.Context(), KeyProduct{}, *prod)
+		ctx := context.WithValue(req.Context(), KeyProduct{}, prod)
 
 		// Send the validated product request to the next handler
 		req = req.WithContext(ctx)
