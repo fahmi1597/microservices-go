@@ -16,14 +16,62 @@ import (
 type CurrencyServer struct {
 	log   hclog.Logger
 	rates *data.ExchangeRates
+	// rateSubscription is used for cache
+	// It's a map that returns a collection of client rate requests
+	subscriptions map[protogc.Currency_SubscribeRatesServer][]*protogc.RateRequest
 	protogc.UnimplementedCurrencyServer
 }
 
 // NewCurrencyServer creates a new Currency server
 func NewCurrencyServer(l hclog.Logger, r *data.ExchangeRates) *CurrencyServer {
-	return &CurrencyServer{
-		log:   l,
-		rates: r,
+	cs := &CurrencyServer{
+		log:           l,
+		rates:         r,
+		subscriptions: make(map[protogc.Currency_SubscribeRatesServer][]*protogc.RateRequest),
+	}
+
+	// monitor for updates
+	go cs.getRateUpdates()
+
+	return cs
+}
+
+func (cs *CurrencyServer) getRateUpdates() {
+	rateUpdates := cs.rates.MonitorRates(time.Second * 5)
+
+	for range rateUpdates {
+		cs.log.Info("Got exchange rates update")
+
+		// loop over subscription server to find subscribed client requests
+		for srs, rr := range cs.subscriptions {
+
+			// loop over client requests to get requested rate
+			for _, r := range rr {
+				rateRatio, err := cs.rates.GetRateRatio(r.Base.String(), r.Destination.String())
+				if err != nil {
+					cs.log.Error(
+						"Unable to get rates update",
+						"base", r.Base,
+						"dest", r.Destination,
+						"error", err,
+					)
+				}
+
+				err = srs.Send(&protogc.RateResponse{
+					Base:        r.Base,
+					Destination: r.Destination,
+					Rate:        rateRatio,
+				})
+				if err != nil {
+					cs.log.Error(
+						"Unable to send updated rates",
+						"base", r.Base,
+						"dest", r.Destination,
+						"error", err,
+					)
+				}
+			}
+		}
 	}
 }
 
@@ -48,31 +96,34 @@ func (cs *CurrencyServer) GetRate(ctx context.Context, rr *protogc.RateRequest) 
 func (cs *CurrencyServer) SubscribeRates(srs protogc.Currency_SubscribeRatesServer) error {
 
 	// Read rate request from client standard input stream (stdin)
-	// It's placed inside go routine to concurrently accepting input while producing output
-	go func() {
-		for {
-			rateRequest, err := srs.Recv()
-			if err == io.EOF {
-				cs.log.Info("Client has closed connection")
-				break
-			}
-			if err != nil {
-				cs.log.Error("Unable to read client request")
-				break
-			}
-			cs.log.Info("Handle client request", "base", rateRequest.Base, "dest", rateRequest.Destination)
-		}
-	}()
-
 	for {
-		// Send rate response to client
-		err := srs.Send(&protogc.RateResponse{Rate: 5.5})
+		rateRequest, err := srs.Recv()
+		if err == io.EOF {
+			cs.log.Info("Client has closed connection")
+
+			// then delete the client from subscription
+			delete(cs.subscriptions, srs)
+			break
+		}
 		if err != nil {
+			cs.log.Error("Unable to read client request")
+
+			// same for any kind of error, delete the client
+			delete(cs.subscriptions, srs)
 			return err
 		}
+		cs.log.Info("Handle client request", "base", rateRequest.Base, "dest", rateRequest.Destination)
 
-		// Wait for 5 sec for next response
-		time.Sleep(time.Second * 5)
+		// If no client subscription in server, create initial rate requests
+		rateRequests, ok := cs.subscriptions[srs]
+		if !ok {
+			rateRequests = []*protogc.RateRequest{}
+		}
+
+		// Otherwise cache the client subscription
+		rateRequests = append(rateRequests, rateRequest)
+		cs.subscriptions[srs] = rateRequests
 	}
 
+	return nil
 }
