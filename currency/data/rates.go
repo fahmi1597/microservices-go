@@ -53,7 +53,8 @@ func (er *ExchangeRates) GetRateRatio(base, dest string) (float64, error) {
 }
 func (er *ExchangeRates) fetchRates() error {
 
-	// fetch latest exchange rate from api endpoint
+	// fetch latest exchange rate from api endpoint (Data from European Central Bank)
+	// so the default currency is EUR
 	resp, err := http.Get("https://api.exchangeratesapi.io/latest")
 	if err != nil {
 		er.log.Error("Failed to reach exchange rates endpoint", "error", err)

@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"io"
+	"time"
 
 	"github.com/fahmi1597/microservices-go/currency/data"
 
@@ -40,4 +42,37 @@ func (cs *CurrencyServer) GetRate(ctx context.Context, rr *protogc.RateRequest) 
 	}
 	// spew.Dump(rateRatio)
 	return &protogc.RateResponse{Rate: rateRatio}, nil
+}
+
+// SubscribeRates is new thing
+func (cs *CurrencyServer) SubscribeRates(srs protogc.Currency_SubscribeRatesServer) error {
+
+	// Read rate request from client standard input stream (stdin)
+	// It's placed inside go routine to concurrently accepting input while producing output
+	go func() {
+		for {
+			rateRequest, err := srs.Recv()
+			if err == io.EOF {
+				cs.log.Info("Client has closed connection")
+				break
+			}
+			if err != nil {
+				cs.log.Error("Unable to read client request")
+				break
+			}
+			cs.log.Info("Handle client request", "base", rateRequest.Base, "dest", rateRequest.Destination)
+		}
+	}()
+
+	for {
+		// Send rate response to client
+		err := srs.Send(&protogc.RateResponse{Rate: 5.5})
+		if err != nil {
+			return err
+		}
+
+		// Wait for 5 sec for next response
+		time.Sleep(time.Second * 5)
+	}
+
 }

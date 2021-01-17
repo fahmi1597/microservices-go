@@ -6,11 +6,14 @@ option go_package = "github.com/fahmi1597/microservices-go/currency/protos/curre
 service Currency {
     // GetRate returns the exchange rate for the two provided currency codes 
     rpc GetRate(RateRequest) returns (RateResponse);
+    rpc SubscribeRates(stream RateRequest) returns (stream RateResponse);
 }
 
 // RateRequest defines the request for a GetRate call
 message RateRequest {
+    // Base is the base currency code for the rate
     Currencies Base = 1 [json_name = "base"];
+    // Destination is the destination currency code for the rate
     Currencies Destination = 2 [json_name = "destination"];
 }
 
