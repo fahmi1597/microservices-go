@@ -24,7 +24,7 @@ func TestAddProduct(t *testing.T) {
 	}
 
 	pdb := ProductsDB{}
-	AddProduct(p)
+	pdb.AddProduct(p)
 	ps, _ := pdb.GetProductList("")
 	fmt.Printf("%#v \n", ps)
 	p1, _ := pdb.GetProductByID(len(ps), "")
@@ -42,6 +42,6 @@ func TestUpdateProduct(t *testing.T) {
 	}
 	pdb := ProductsDB{}
 	pdb.GetProductList("")
-	UpdateProduct(p)
+	pdb.UpdateProduct(p)
 	pdb.GetProductList("")
 }

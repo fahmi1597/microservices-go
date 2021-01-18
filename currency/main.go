@@ -20,23 +20,32 @@ func main() {
 		Level: hclog.LevelFromString("DEBUG"),
 	})
 
-	// Create a new instance of gRPC Server
-	gs := grpc.NewServer()
-
 	er, err := data.NewExchangeRates(l)
 	if err != nil {
 		l.Error("Unable to create currency exchange rates")
 		os.Exit(1)
 	}
 
+	// pctx := context.Background()
+	// globalCtx, globalCancel := context.WithCancel(pctx)
+
 	// Create new instance of CurrencyServer
 	cs := server.NewCurrencyServer(l, er)
+
+	// Create a new instance of gRPC Server
+	gs := grpc.NewServer()
 
 	// Register the gRPC currency server
 	protogc.RegisterCurrencyServer(gs, cs)
 
 	// Don't use in production
 	reflection.Register(gs)
+
+	// Graceful
+	// taken from https://stackoverflow.com/questions/55797865/behavior-of-server-gracefulstop-in-golang
+	c := make(chan os.Signal, 1)
+	cErr := make(chan error, 1)
+	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
 
 	nl, err := net.Listen("tcp", "localhost:9002")
 	if err != nil {
@@ -46,18 +55,20 @@ func main() {
 
 	go func() {
 		l.Info("Server starting", "address", nl.Addr().String())
-		err := gs.Serve(nl)
-		if err != grpc.ErrServerStopped {
-			l.Error("Unclean shutdown", err)
-			os.Exit(1)
+		if err := gs.Serve(nl); err != nil {
+			cErr <- err
 		}
-
+	}()
+	defer func() {
+		gs.GracefulStop()
 	}()
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
-	sig := <-c
-	l.Info("Shutting down", "signal", sig)
-	gs.GracefulStop()
+	select {
+	case err := <-cErr:
+		l.Error("Fatal error", "error", err)
+		os.Exit(1)
+	case sig := <-c:
+		l.Info("Shutting down", "signal", sig)
+	}
 
 }

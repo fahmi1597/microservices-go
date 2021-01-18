@@ -21,7 +21,7 @@ func (p *Products) UpdateProduct(resp http.ResponseWriter, req *http.Request) {
 	prod := req.Context().Value(KeyProduct{}).(data.Product)
 	p.log.Debug("Updating product", "id", prod.ID)
 
-	err := data.UpdateProduct(prod)
+	err := p.productDB.UpdateProduct(prod)
 	if err == data.ErrProductNotFound {
 		resp.WriteHeader(http.StatusNotFound)
 		data.ToJSON(&GenericError{Message: "Product not found in database"}, resp)

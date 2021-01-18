@@ -51,29 +51,66 @@ type Products []*Product
 
 // ProductsDB is used to query data with
 type ProductsDB struct {
-	log      hclog.Logger
-	currency currency.CurrencyClient
+	log       hclog.Logger
+	currency  currency.CurrencyClient
+	rates     map[string]float64
+	clientSub protogc.Currency_SubscribeRatesClient
 }
 
 // NewProductsDB do something
 func NewProductsDB(log hclog.Logger, cc currency.CurrencyClient) *ProductsDB {
-	return &ProductsDB{
-		log:      log,
-		currency: cc,
+
+	npdb := &ProductsDB{
+		log:       log,
+		currency:  cc,
+		rates:     make(map[string]float64),
+		clientSub: nil,
+	}
+
+	go npdb.getRateUpdates()
+	return npdb
+}
+
+func (pdb *ProductsDB) getRateUpdates() {
+	sub, err := pdb.currency.SubscribeRates(context.Background())
+	if err != nil {
+		pdb.log.Error("Unable to subscribe rates update", "error", err)
+		return
+	}
+
+	// assign those who subscribe for rates update to clientSub
+	pdb.clientSub = sub
+
+	// Receive update and hen update the exchange rate ratio for requested rate
+	for {
+		// receive update
+		rateResponse, err := sub.Recv()
+		if err != nil {
+			pdb.log.Error("Unable to get rate updates", "error", err)
+			return
+		}
+		pdb.log.Info(
+			"Receive updated rate",
+			"base", rateResponse.GetBase().String(),
+			"dest", rateResponse.GetDestination().String(),
+			"rate", rateResponse.GetRate())
+
+		// update the cache
+		pdb.rates[rateResponse.GetDestination().String()] = rateResponse.Rate
 	}
 }
 
 // GetProductList do something
-func (p *ProductsDB) GetProductList(currency string) (Products, error) {
+func (pdb *ProductsDB) GetProductList(currency string) (Products, error) {
 
 	// Just return list product if there's no currency in request
 	if currency == "" {
 		return productList, nil
 	}
 
-	rateRatio, err := p.getRateRatio(currency)
+	rateRatio, err := pdb.getRateRatio(currency)
 	if err != nil {
-		p.log.Error("Unable to get exchange rate", "currency", currency, "error", err)
+		pdb.log.Error("Unable to get exchange rate", "currency", currency, "error", err)
 		return nil, err
 	}
 	// Create a new slice of Product to mutate the product price with requested currency rate
@@ -91,7 +128,7 @@ func (p *ProductsDB) GetProductList(currency string) (Products, error) {
 }
 
 // GetProductByID return a product
-func (p *ProductsDB) GetProductByID(id int, currency string) (*Product, error) {
+func (pdb *ProductsDB) GetProductByID(id int, currency string) (*Product, error) {
 	i := findProductByID(id)
 	if i == -1 {
 		return nil, ErrProductNotFound
@@ -101,9 +138,9 @@ func (p *ProductsDB) GetProductByID(id int, currency string) (*Product, error) {
 		return productList[i], nil
 	}
 
-	rateRatio, err := p.getRateRatio(currency)
+	rateRatio, err := pdb.getRateRatio(currency)
 	if err != nil {
-		p.log.Error("Unable to get exchange rate", "currency", currency, "error", err)
+		pdb.log.Error("Unable to get exchange rate", "currency", currency, "error", err)
 		return nil, err
 	}
 
@@ -115,7 +152,7 @@ func (p *ProductsDB) GetProductByID(id int, currency string) (*Product, error) {
 }
 
 // AddProduct is a function to add the requested product
-func AddProduct(product Product) {
+func (pdb *ProductsDB) AddProduct(product Product) {
 
 	// Get latest item[position] id
 	id := productList[len(productList)-1].ID
@@ -125,7 +162,7 @@ func AddProduct(product Product) {
 }
 
 // UpdateProduct is a function to update the requested product
-func UpdateProduct(p Product) error {
+func (pdb *ProductsDB) UpdateProduct(p Product) error {
 
 	i := findProductByID(p.ID)
 	if i != -1 {
@@ -137,7 +174,7 @@ func UpdateProduct(p Product) error {
 }
 
 // DeleteProduct is a function to delete the requested product
-func DeleteProduct(id int) error {
+func (pdb *ProductsDB) DeleteProduct(id int) error {
 	i := findProductByID(id)
 	if i != -1 {
 		productList = append(productList[:i], productList[i+1:]...)
@@ -158,20 +195,34 @@ func findProductByID(id int) int {
 	return -1
 }
 
-func (p *ProductsDB) getRateRatio(dest string) (float64, error) {
+func (pdb *ProductsDB) getRateRatio(dest string) (float64, error) {
 
-	// Base currency always USD
+	// if cached, return
+	if cached, ok := pdb.rates[dest]; ok {
+		return cached, nil
+	}
+
+	// otherwise send a rate request.
+
+	// Product-api always use EUR as base currency
 	rateRequest := &protogc.RateRequest{
 		Base:        protogc.Currencies(protogc.Currencies_value["EUR"]),
 		Destination: protogc.Currencies(protogc.Currencies_value[dest]),
 	}
 
 	// Get exchange rate
-	rateResponse, err := p.currency.GetRate(context.Background(), rateRequest)
+	rateResponse, err := pdb.currency.GetRate(context.Background(), rateRequest)
 	if err != nil {
-		p.log.Error("Unable to get rate ratio", "error", err.Error())
+		pdb.log.Error("Unable to get rate ratio", "error", err.Error())
 		return 0, nil
 	}
+
+	// Cached the response
+	pdb.rates[dest] = rateResponse.Rate
+
+	// Since client use currency request,
+	// set client to subscribe for rate updates
+	pdb.clientSub.Send(rateRequest)
 
 	return rateResponse.Rate, nil
 }

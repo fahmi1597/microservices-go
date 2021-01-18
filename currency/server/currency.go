@@ -14,6 +14,7 @@ import (
 
 // CurrencyServer is a gRPC server, it implements the method defined in CurrencyServer interface
 type CurrencyServer struct {
+	// gctx          context.Context
 	log   hclog.Logger
 	rates *data.ExchangeRates
 	// rateSubscription is used for cache
@@ -25,6 +26,7 @@ type CurrencyServer struct {
 // NewCurrencyServer creates a new Currency server
 func NewCurrencyServer(l hclog.Logger, r *data.ExchangeRates) *CurrencyServer {
 	cs := &CurrencyServer{
+		// gctx:          g,
 		log:           l,
 		rates:         r,
 		subscriptions: make(map[protogc.Currency_SubscribeRatesServer][]*protogc.RateRequest),
@@ -106,7 +108,7 @@ func (cs *CurrencyServer) SubscribeRates(srs protogc.Currency_SubscribeRatesServ
 			break
 		}
 		if err != nil {
-			cs.log.Error("Unable to read client request")
+			cs.log.Error("Unable to read client request", "error", err)
 
 			// same for any kind of error, delete the client
 			delete(cs.subscriptions, srs)

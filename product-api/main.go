@@ -95,18 +95,14 @@ func main() {
 	}()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	signal.Notify(c, os.Kill)
+	signal.Notify(c, os.Interrupt, os.Kill)
 
 	sig := <-c
 	log.Info("Shutting down", "signal", sig)
 
 	// Graceful shutdown the server, waiting for max of 30 seconds until current operations is completed
 	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-
-	defer func() {
-		cancel()
-	}()
+	defer cancel()
 
 	err = s.Shutdown(tc)
 	if err != nil {
