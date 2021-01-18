@@ -33,16 +33,17 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - Handling file uploads - REST approach
     - Handling file uploads - Multipart approach
     - GZIP Compression
-- [ ] gRPC microservices
+- [x] gRPC microservices
     - Introduction to gRPC and Protocol Buffers
     - Connecting to gRPC server as client
+    - gRPC Bi-directional streaming
 - [ ] Packaging applications with Docker
-- [ ] Testing microservice
+- [x] Testing microservice
 - [ ] Continuous Delivery
 - [ ] Observability
 - [ ] Using Kubernetes
-- [ ] Debugging
+- [x] Debugging
 - [ ] Security
 - [ ] Asynchronous microservices
-- [ ] Caching
+- [x] Caching
 - [ ] Microservice reliability using a Service Mesh

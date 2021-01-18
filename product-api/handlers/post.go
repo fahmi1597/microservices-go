@@ -21,6 +21,7 @@ func (p *Products) AddProduct(resp http.ResponseWriter, req *http.Request) {
 	prod := req.Context().Value(KeyProduct{}).(data.Product)
 
 	p.log.Debug("Inserting product", "product", prod)
-	data.AddProduct(prod)
+
+	p.productDB.AddProduct(prod)
 
 }

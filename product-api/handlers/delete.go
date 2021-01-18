@@ -19,7 +19,7 @@ func (p *Products) DeleteProduct(resp http.ResponseWriter, req *http.Request) {
 	id := p.getProductID(req)
 	p.log.Debug("Deleting product", "id", id)
 
-	err := data.DeleteProduct(id)
+	err := p.productDB.DeleteProduct(id)
 	if err == data.ErrProductNotFound {
 		p.log.Error("Failed to delete product (does not exist) ", "id", id)
 
