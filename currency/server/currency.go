@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/fahmi1597/microservices-go/currency/data"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	// alias for protoc generated code
 	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
@@ -80,12 +82,29 @@ func (cs *CurrencyServer) getRateUpdates() {
 // GetRate implements CurrencyServer GetRate method from the protoc generated code
 func (cs *CurrencyServer) GetRate(ctx context.Context, rr *protogc.RateRequest) (*protogc.RateResponse, error) {
 	cs.log.Debug(
-		"GetRate",
+		"Handle get rate",
 		"base", rr.GetBase(),
 		"destination",
 		rr.GetDestination(),
 	)
 
+	if rr.Destination == rr.Base {
+		// example of enrichment error in unary rpc
+		errStatus := status.Newf(
+			codes.InvalidArgument,
+			"The base currency %s can not be the same as the destination currency %s", //[0]
+			rr.GetBase().String(),
+			rr.GetDestination().String(),
+		)
+
+		errStatus, errWithDetails := errStatus.WithDetails(rr)
+		if errWithDetails != nil {
+			return nil, errWithDetails
+		}
+
+		// cs.log.Debug("Unary rich error", "error", errStatus.Code())
+		return nil, errStatus.Err()
+	}
 	rateRatio, err := cs.rates.GetRateRatio(rr.GetBase().String(), rr.GetDestination().String())
 	if err != nil {
 		return nil, err

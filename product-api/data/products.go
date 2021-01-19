@@ -7,6 +7,8 @@ import (
 	"github.com/fahmi1597/microservices-go/currency/protos/currency"
 	protogc "github.com/fahmi1597/microservices-go/currency/protos/currency"
 	"github.com/hashicorp/go-hclog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // ErrProductNotFound is an error message when client requesting a product that can not be found or doesn't exist
@@ -214,7 +216,35 @@ func (pdb *ProductsDB) getRateRatio(dest string) (float64, error) {
 	rateResponse, err := pdb.currency.GetRate(context.Background(), rateRequest)
 	if err != nil {
 		pdb.log.Error("Unable to get rate ratio", "error", err.Error())
-		return 0, nil
+
+		if errStatus, ok := status.FromError(err); ok {
+			// get metadata of error from grpc status
+			// it returns a slice of details, cast it to raterequest
+			// example error details :
+			//  Details:
+			//   1)    {
+			// 	"@type": "type.googleapis.com/currency.RateRequest",
+			// 	"base": "USD",
+			// 	"destination": "USD"
+			//   }
+			errMetadata := errStatus.Details()[0].(*protogc.RateRequest)
+
+			// Error will be converted to generic error message (serialized)
+			if errStatus.Code() == codes.InvalidArgument {
+				return -1, fmt.Errorf(
+					"Base and destination currencies can not be the same: base=%s, destination=%s",
+					errMetadata.Base.String(),
+					errMetadata.Destination.String(),
+				)
+			}
+
+			return -1, fmt.Errorf(
+				"Unable to get rate ratio from currency server: base=%s, destination=%s",
+				errMetadata.Base.String(),
+				errMetadata.Destination.String())
+		}
+
+		return -1, nil
 	}
 
 	// Cached the response

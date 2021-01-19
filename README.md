@@ -2,13 +2,15 @@
 
 ## About
 
-Seri [Building Microservices with Go](https://www.youtube.com/playlist?list=PLmD8u-IFdreyh6EUfevBcbiuCKzFk0EW_) oleh Nicholas Jackson.
+From [Building Microservices with Go](https://www.youtube.com/playlist?list=PLmD8u-IFdreyh6EUfevBcbiuCKzFk0EW_) series by Nicholas Jackson.
 
-Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microservices-youtube
+Mono repo from the author : https://github.com/nicholasjackson/building-microservices-youtube
+
+The front-end service is 100% clone, while the rest of the service are typed manually and modified to work with the latest version of protocol buffer compiler / protoc also the code generator from swagger.
 
 ## Goal
 
--  Membangun multi-tier microservice system
+-  Building a multi-tier microservices system
 
 ## Skills Required
 
@@ -37,6 +39,7 @@ Versi mono-reponya ada di : https://github.com/nicholasjackson/building-microser
     - Introduction to gRPC and Protocol Buffers
     - Connecting to gRPC server as client
     - gRPC Bi-directional streaming
+    - gRPC error handling
 - [ ] Packaging applications with Docker
 - [x] Testing microservice
 - [ ] Continuous Delivery
