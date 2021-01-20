@@ -38,7 +38,7 @@ func NewExchangeRates(log hclog.Logger) (*ExchangeRates, error) {
 	return er, nil
 }
 
-// GetRateRatio calculates the rate ratio between two currencies, the base and the destination.
+// GetRateRatio calculates the rate ratio between two currencies, base and destination
 func (er *ExchangeRates) GetRateRatio(base, dest string) (float64, error) {
 
 	// Check if the currency rate is available on our database.
@@ -59,7 +59,7 @@ func (er *ExchangeRates) GetRateRatio(base, dest string) (float64, error) {
 //
 // Note: the ECB API only returns data once a day, this function only simulates the changes
 // in rates for demonstration purposes
-func (er *ExchangeRates) MonitorRates(interval time.Duration) chan struct{} {
+func (e *ExchangeRates) MonitorRates(interval time.Duration) chan struct{} {
 	ret := make(chan struct{})
 
 	go func() {
@@ -69,7 +69,7 @@ func (er *ExchangeRates) MonitorRates(interval time.Duration) chan struct{} {
 			case <-ticker.C:
 				// just add a random difference to the rate and return it
 				// this simulates the fluctuations in currency rates
-				for k, v := range er.rates {
+				for k, v := range e.rates {
 					// change can be 10% of original value
 					change := (rand.Float64() / 10)
 					// is this a postive or negative change
@@ -84,7 +84,7 @@ func (er *ExchangeRates) MonitorRates(interval time.Duration) chan struct{} {
 					}
 
 					// modify the rate
-					er.rates[k] = v * change
+					e.rates[k] = v * change
 				}
 
 				// notify updates, this will block unless there is a listener on the other end
