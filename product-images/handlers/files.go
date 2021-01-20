@@ -9,37 +9,34 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// UploadREST is a handler for uploading a file in restful way
+// UploadREST is a handler for uploading a file in restful approach
 func (fh *File) UploadREST(resp http.ResponseWriter, req *http.Request) {
 
 	vars := mux.Vars(req)
 	id := vars["id"]
 	fn := vars["filename"]
 
-	fh.log.Printf("[INFO] Handle PUT request: id=%s filename=%s", id, fn)
+	fh.log.Debug("Handle PUT request", "id", id, "filename", fn)
 	fh.saveFiles(id, fn, resp, req.Body)
 
 }
 
-// UploadMultipart is a handler for uploading a file in multipart way
+// UploadMultipart is a handler for uploading a file in multipart approach
 func (fh *File) UploadMultipart(resp http.ResponseWriter, req *http.Request) {
 
 	err := req.ParseMultipartForm(128 * 1024)
 	if err != nil {
-		fh.log.Println("[ERROR] Bad request:", err)
 		http.Error(resp, "Expected multipart form", http.StatusBadRequest)
 		return
 	}
 
 	if _, err := strconv.Atoi(req.FormValue("id")); err != nil {
-		fh.log.Println("[ERROR] Bad request:", err)
 		http.Error(resp, "Expected id integer", http.StatusBadRequest)
 		return
 	}
 
 	mf, mfh, err := req.FormFile("file")
 	if err != nil {
-		fh.log.Println("[ERROR] Bad request:", err)
 		http.Error(resp, "Expected file", http.StatusBadRequest)
 		return
 	}
@@ -54,15 +51,13 @@ func (fh *File) UploadMultipart(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (fh *File) saveFiles(id string, fn string, resp http.ResponseWriter, mf io.ReadCloser) {
-	fh.log.Println("[INFO] Saving file")
+	fh.log.Debug("Saving file", "filename", fn)
 
 	fp := filepath.Join(id, fn)
 
 	if err := fh.store.Write(fp, mf); err != nil {
-		fh.log.Println("[ERROR] Unable to save file", err)
+		fh.log.Debug("Unable to save file", "error", err)
 		http.Error(resp, "Unable to save file", http.StatusInternalServerError)
 		return
 	}
-
-	fh.log.Printf("[INFO] File saved: %s", fp)
 }
