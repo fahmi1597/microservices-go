@@ -53,53 +53,24 @@ type Products []*Product
 
 // ProductsDB is used to query data with
 type ProductsDB struct {
-	log       hclog.Logger
-	currency  currency.CurrencyClient
-	rates     map[string]float64
-	clientSub protogc.Currency_SubscribeRatesClient
+	log      hclog.Logger
+	currency currency.CurrencyClient
+	rates    map[string]float64
+	clients  protogc.Currency_SubscribeRatesClient
 }
 
 // NewProductsDB do something
 func NewProductsDB(log hclog.Logger, cc currency.CurrencyClient) *ProductsDB {
 
 	npdb := &ProductsDB{
-		log:       log,
-		currency:  cc,
-		rates:     make(map[string]float64),
-		clientSub: nil,
+		log:      log,
+		currency: cc,
+		rates:    make(map[string]float64),
+		clients:  nil,
 	}
 
 	go npdb.getRateUpdates()
 	return npdb
-}
-
-func (pdb *ProductsDB) getRateUpdates() {
-	sub, err := pdb.currency.SubscribeRates(context.Background())
-	if err != nil {
-		pdb.log.Error("Unable to subscribe rates update", "error", err)
-		return
-	}
-
-	// assign those who subscribe for rates update to clientSub
-	pdb.clientSub = sub
-
-	// Receive update and hen update the exchange rate ratio for requested rate
-	for {
-		// receive update
-		rateResponse, err := sub.Recv()
-		if err != nil {
-			pdb.log.Error("Unable to get rate updates", "error", err)
-			return
-		}
-		pdb.log.Info(
-			"Receive updated rate",
-			"base", rateResponse.GetBase().String(),
-			"dest", rateResponse.GetDestination().String(),
-			"rate", rateResponse.GetRate())
-
-		// update the cache
-		pdb.rates[rateResponse.GetDestination().String()] = rateResponse.Rate
-	}
 }
 
 // GetProductList do something
@@ -197,12 +168,56 @@ func findProductByID(id int) int {
 	return -1
 }
 
+func (pdb *ProductsDB) getRateUpdates() {
+	sub, err := pdb.currency.SubscribeRates(context.Background())
+	if err != nil {
+		pdb.log.Error("Unable to subscribe rates update", "error", err)
+		return
+	}
+
+	// Receive client subscription for rates update
+	pdb.clients = sub
+
+	// Receive update from the stream
+	for {
+		rateResponse, err := sub.Recv()
+		if err != nil {
+			pdb.log.Error("Unable to receive message from currency server", "error", err)
+			return
+		}
+		// If the stream contains error, handle the error.
+		if grpcError := rateResponse.GetErrorMessage(); grpcError != nil {
+			// get the grpc error
+			streamError := status.FromProto(grpcError)
+			if streamError.Code() == codes.AlreadyExists {
+
+				// errDetails contains the details of error from the stream.
+				errDetails := ""
+
+				if errLen := streamError.Details(); len(errLen) > 0 {
+					// get the error rate response
+					if rr, ok := errLen[0].(*protogc.RateRequest); ok {
+						errDetails = fmt.Sprintf("base:%s destination:%s", rr.Base.String(), rr.Destination.String())
+					}
+				}
+				pdb.log.Error("Unable to subscribe for rate updates", "error", grpcError.GetMessage(), "details", errDetails)
+			}
+		}
+
+		if rateResponseStream := rateResponse.GetRateResponse(); rateResponseStream != nil {
+			pdb.log.Info("Received updated rate from server")
+			// update the cache
+			pdb.rates[rateResponseStream.Destination.String()] = rateResponseStream.Rate
+		}
+	}
+}
+
 func (pdb *ProductsDB) getRateRatio(dest string) (float64, error) {
 
 	// if cached, return
-	if cached, ok := pdb.rates[dest]; ok {
-		return cached, nil
-	}
+	// if c	ached, ok := pdb.rates[dest]; ok {
+	// 	return cached, nil
+	// }
 
 	// otherwise send a rate request.
 
@@ -217,42 +232,33 @@ func (pdb *ProductsDB) getRateRatio(dest string) (float64, error) {
 	if err != nil {
 		pdb.log.Error("Unable to get rate ratio", "error", err.Error())
 
-		if errStatus, ok := status.FromError(err); ok {
-			// get metadata of error from grpc status
-			// it returns a slice of details, cast it to raterequest
-			// example error details :
-			//  Details:
-			//   1)    {
-			// 	"@type": "type.googleapis.com/currency.RateRequest",
-			// 	"base": "USD",
-			// 	"destination": "USD"
-			//   }
-			errMetadata := errStatus.Details()[0].(*protogc.RateRequest)
-
-			// Error will be converted to generic error message (serialized)
-			if errStatus.Code() == codes.InvalidArgument {
-				return -1, fmt.Errorf(
-					"Base and destination currencies can not be the same: base=%s, destination=%s",
-					errMetadata.Base.String(),
-					errMetadata.Destination.String(),
-				)
-			}
-
-			return -1, fmt.Errorf(
-				"Unable to get rate ratio from currency server: base=%s, destination=%s",
-				errMetadata.Base.String(),
-				errMetadata.Destination.String())
+		grpcErr, ok := status.FromError(err)
+		if !ok {
+			return -1, err
 		}
-
-		return -1, nil
+		// get metadata of error from grpc status
+		// it returns a slice of details, cast it to raterequest
+		// example error details :
+		//  Details:
+		//   1)    {
+		// 	"@type": "type.googleapis.com/currency.RateRequest",
+		// 	"base": "USD",
+		// 	"destination": "USD"
+		//   }
+		if grpcErr.Code() == codes.InvalidArgument {
+			// Error will be converted to generic error message (serialized)
+			return -1, fmt.Errorf("Unable to get rate ratio from currency server: %s", grpcErr.Message())
+		}
 	}
 
-	// Cached the response
+	// Cache the response
 	pdb.rates[dest] = rateResponse.Rate
 
 	// Since client use currency request,
 	// set client to subscribe for rate updates
-	pdb.clientSub.Send(rateRequest)
+	if err := pdb.clients.Send(rateRequest); err != nil {
+		return -1, err
+	}
 
 	return rateResponse.Rate, nil
 }
