@@ -16,7 +16,7 @@ func (p *Products) GetProductList(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/json")
 
 	cur := req.URL.Query().Get("currency")
-	p.log.Debug("Retrieving product list", "currency", cur)
+	//p.log.Debug("Retrieving product list", "currency", cur)
 
 	// Retrieve product list
 	prods, err := p.productDB.GetProductList(cur)
@@ -46,7 +46,7 @@ func (p *Products) GetProductByID(resp http.ResponseWriter, req *http.Request) {
 
 	id := p.getProductID(req)
 	cur := req.URL.Query().Get("currency")
-	p.log.Debug("Retrieving product", "id", id, "currency", cur)
+	//p.log.Debug("Retrieving product", "id", id, "currency", cur)
 
 	prod, err := p.productDB.GetProductByID(id, cur)
 	switch err {
