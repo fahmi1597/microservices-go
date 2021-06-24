@@ -4,9 +4,9 @@
 
 From [Building Microservices with Go](https://www.youtube.com/playlist?list=PLmD8u-IFdreyh6EUfevBcbiuCKzFk0EW_) series by Nicholas Jackson.
 
-Mono repo from the author : https://github.com/nicholasjackson/building-microservices-youtube
+Original mono repo from the author: https://github.com/nicholasjackson/building-microservices-youtube. 
 
-The front-end service is 100% clone, while the rest of the service are typed manually and modified to work with the latest version of protocol buffer compiler / protoc also the code generator from swagger.
+This one has been modified to work with the latest version of protocol buffer compiler/protoc and the code generator from swagger.
 
 ## Goal
 
@@ -14,7 +14,7 @@ The front-end service is 100% clone, while the rest of the service are typed man
 
 ## Skills Required
 
-- [Dasar Pemrograman Go](https://dasarpemrogramangolang.novalagung.com/)
+-  Basics Go | [Dasar Pemrograman Go](https://dasarpemrogramangolang.novalagung.com/)
 
 ## Skills Learned
 
